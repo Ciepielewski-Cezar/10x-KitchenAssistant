@@ -26,18 +26,37 @@ The code was generated from `dotnet new blazor --auth Individual`. The pages `Co
 
 ## Commands
 
-The target is .NET 10 (`net10.0`), with SDK 10.0.x. `dotnet-ef` is installed as a global tool.
+The target is .NET 10 (`net10.0`); `global.json` pins SDK 10.0.x. `dotnet-ef` 10.0.12 is a local tool in `dotnet-tools.json`, so run `dotnet tool restore` after cloning.
 
 ```bash
 dotnet build
 dotnet run --launch-profile https      # https://localhost:7020, http://localhost:5180
-dotnet watch                           # hot reload
+dotnet watch                           # hot reload; Ctrl+R restarts after a rude edit
 dotnet ef migrations add <Name> --output-dir Data/Migrations
+dotnet ef migrations has-pending-model-changes   # must exit 0 before committing
 dotnet ef database update              # applies migrations to LocalDB
 dotnet list package --vulnerable --include-transitive
 ```
 
 Register every test project (e.g. `KitchenAssistant.Tests`) in `KitchenAssistant.slnx`. Run a single test with `dotnet test --filter "FullyQualifiedName~<Name>"`.
+
+### Local run
+
+- **Dev loop:** LocalDB, `Development` environment, account confirmation via the on-screen link. Secrets come from user-secrets: `dotnet user-secrets set ANTHROPIC_API_KEY <dev-key>`. If the key is missing, the app logs a warning and still starts.
+- **Production-like stack** (`compose.yaml`, http://localhost:8090):
+  - The app runs as a Linux container in `Production`, against a SQL Server 2022 container (host port 14330) with SQL auth.
+  - The image is built by the SDK (`/t:PublishContainer`), with no Dockerfile.
+  - Migrations run at startup (`Database:MigrateOnStartup`), and confirmation is off (`appsettings.Production.json`).
+  - Secrets are in the git-ignored `.env` (template: `.env.example`).
+  ```bash
+  ./scripts/local-prod.ps1            # build image, start stack, wait for /healthz
+  ./scripts/local-prod.ps1 -NoBuild   # restart without rebuilding
+  ./scripts/local-prod.ps1 -Reset     # wipe the SQL volume; schema rebuilds from migrations
+  ./scripts/local-prod.ps1 -Down      # stop, keep data
+  ```
+- `/healthz` is liveness only and must never query the database.
+- Data Protection keys live in the `DataProtectionKeys` table, so logins survive restarts.
+- Plans: `context/changes/local-dev/local-dev-plan.md` (local) and `context/changes/deployment/deployment-plan.md` (Azure).
 <!-- BEGIN @przeprogramowani/10x-cli -->
 
 ## 10xDevs AI Toolkit — Module 1, Lesson 5
