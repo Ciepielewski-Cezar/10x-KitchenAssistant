@@ -32,7 +32,7 @@ Environment snapshot (checked 2026-09-29):
 | L1 | Code readiness (= cloud Phase 2) | 🤖 | ✅ 2026-09-29 |
 | L2 | Dev loop on LocalDB | 🤖 + 👤 secret | ✅ 2026-09-29 (Anthropic key deferred) |
 | L3 | Production-like Docker stack | 🤖 + 👤 `.env` secrets | ✅ 2026-09-29 |
-| L4 | Hand-off & docs | 🤖 | 🟡 commit pending |
+| L4 | Hand-off & docs | 🤖 | ✅ 2026-09-29 (commit f56e334) |
 
 All work happens on the local branch `local-dev-setup`. Nothing is pushed to GitHub or Azure. Commit only when you say so.
 
@@ -161,7 +161,7 @@ Known differences from Azure (so nothing here gives false confidence):
 - [x] Add a "Local run" block to `CLAUDE.md`, outside the 10x-cli markers: the dev-loop commands, `scripts/local-prod.ps1` usage, and the ports (7020/5180 for dev, 8090 for the prod-like stack, 14330 for container SQL).
 - [x] In `context/changes/deployment/deployment-plan.md`, mark **Phase 2 ✅** (done via local L1) and note that `global.json`, the tool manifest and the Data Protection migration already exist.
 - [x] Tick the phase tracker in this file.
-- [ ] Propose a commit on `local-dev-setup` (only on your OK).
+- [x] Committed on `local-dev-setup` as `f56e334`.
 
 ## Critical files
 
