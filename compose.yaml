@@ -1,0 +1,39 @@
+# Production-like local stack: the app in a Linux .NET 10 container (Production config)
+# plus SQL Server with SQL auth, mirroring App Service Linux + Azure SQL.
+# Build the image first (no Dockerfile, the SDK builds it):
+#   dotnet publish KitchenAssistant.csproj -c Release --os linux --arch x64 /t:PublishContainer -p:ContainerImageTag=local
+# or just run scripts/local-prod.ps1, which also creates .env on first use.
+name: kitchen-assistant
+
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in .env (see .env.example)}
+    ports:
+      - "14330:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" -b -o /dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  app:
+    image: kitchen-assistant:local
+    depends_on:
+      sql:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # TrustServerCertificate=True only because the SQL container's cert is self-signed; Azure SQL uses False.
+      ConnectionStrings__DefaultConnection: "Server=sql,1433;Database=KitchenAssistant;User ID=sa;Password=${MSSQL_SA_PASSWORD};Encrypt=True;TrustServerCertificate=True"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    ports:
+      - "8090:8080"
+
+volumes:
+  sqldata:

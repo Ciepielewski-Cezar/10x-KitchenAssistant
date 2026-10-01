@@ -6,10 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>aspnet-KitchenAssistant-40efb3c6-1e5b-4980-8207-342f929eb801</UserSecretsId>
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <!-- Image name for `dotnet publish /t:PublishContainer` (local prod-like stack, see compose.yaml). -->
+    <ContainerRepository>kitchen-assistant</ContainerRepository>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Anthropic" Version="12.50.0" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.12" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.12" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.12" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />

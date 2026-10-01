@@ -1,8 +1,9 @@
 ---
 project: "Kitchen Assistant"
-version: 1
+version: 2
 status: draft
 created: 2026-09-24
+updated: 2026-09-30
 context_type: greenfield
 product_type: web-app
 target_scale:
@@ -83,6 +84,16 @@ Reguła wykorzystuje produkty użytkownika w kategoriach „zużyj w pierwszej k
 
 Użytkownik prosi o przepisy i otrzymuje uporządkowaną listę propozycji wraz z widoczną oceną jakości. Najpierw widzi propozycje niewymagające zakupów, a później propozycje z niewielką liczbą braków.
 
+Parametry posiłku to: rodzaj posiłku (śniadanie, obiad, kolacja, przekąska), maksymalny czas przygotowania (do 15, do 30, do 60 minut, bez limitu) oraz liczba porcji (1, 2, 4). Każdy parametr ma wartość domyślną (obiad, do 30 minut, 1 porcja), więc użytkownik może poprosić o przepisy bez zmieniania parametrów. Jedno zapytanie zwraca do 5 propozycji.
+
+AI otrzymuje produkty użytkownika wraz z ich identyfikatorami. Dla składnika pochodzącego z produktów użytkownika zwraca identyfikator tego produktu, a brakującemu składnikowi nadaje nazwę. Aplikacja uznaje składnik za posiadany tylko wtedy, gdy zwrócony identyfikator istnieje na liście produktów tego użytkownika.
+
+Składniki z krótkiej, stałej listy „zawsze w domu” (np. sól, pieprz, olej, woda) nie są liczone jako braki i nie wchodzą do oceny.
+
+„Mała lista braków” oznacza maksymalnie 2 brakujące składniki. AI otrzymuje ten sam limit, a aplikacja odrzuca propozycje, które go przekraczają.
+
+Widoczna ocena ma postać „Masz X z Y składników” (bez składników „zawsze w domu”) wraz z liczbą brakujących składników. Propozycja pokazuje także, ile produktów „zużyj w pierwszej kolejności” wykorzystuje.
+
 ## Access Control
 
 Użytkownik zakłada konto z e-mailem i hasłem. W MVP każdy użytkownik ma własną, prywatną przestrzeń z lodówką i zapasami; zaproszenia i współdzielenie przestrzeni są poza zakresem MVP.
@@ -97,6 +108,8 @@ Użytkownik zakłada konto z e-mailem i hasłem. W MVP każdy użytkownik ma wł
 
 ## Open Questions
 
-1. **Jakie dokładnie parametry posiłku znajdą się w małym, zdefiniowanym zestawie?** — Do rozstrzygnięcia przez użytkownika przed implementacją interfejsu wyboru.
-2. **Jaka maksymalna liczba brakujących składników nadal oznacza „małą listę braków”?** — Do rozstrzygnięcia przez użytkownika przed implementacją reguły rekomendacji.
-3. **Jak aplikacja dopasowuje nazwy składników z wygenerowanego przepisu do nazw produktów użytkownika (np. „pomidory” vs „pomidor koktajlowy”)?** — Proponowany kierunek: AI używa dokładnych nazw produktów użytkownika dla składników, które pochodzą z jego zapasów, a nowe nazwy nadaje tylko brakującym składnikom; aplikacja porównuje nazwy dokładnie. Do rozstrzygnięcia przez użytkownika przed implementacją reguły rekomendacji.
+Brak otwartych pytań. Pytania z wersji 1 rozstrzygnięto 2026-09-30, a decyzje zapisano w *Business Logic*:
+
+1. Zestaw parametrów posiłku — rodzaj posiłku, maksymalny czas, liczba porcji, z wartościami domyślnymi.
+2. „Mała lista braków” — maksymalnie 2 brakujące składniki; propozycje ponad limit są odrzucane.
+3. Dopasowanie składników — AI zwraca identyfikator produktu użytkownika zamiast nazwy; składniki „zawsze w domu” nie są brakami.
