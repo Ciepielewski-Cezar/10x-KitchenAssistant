@@ -248,7 +248,8 @@ Steps inside the script:
 
 - [ ] 🤖 (👤 approve) Log Analytics workspace **with a daily cap**: `az monitor log-analytics workspace create -g rg-kitchen-assistant -n log-kitchen-assistant -l polandcentral --quota 0.1`. The 0.1 GB/day cap stops runaway ingestion costs.
 - [ ] 🤖 (👤 approve) App Insights: `az monitor app-insights component create --app ai-kitchen-assistant -g rg-kitchen-assistant -l polandcentral --workspace <ws-id>`. Then set app setting `APPLICATIONINSIGHTS_CONNECTION_STRING` (this restarts the app). The Phase 2 code switches Azure Monitor on automatically.
-- [ ] 👤 Portal: add a **Standard availability test** on `https://<host>/healthz` every 5 min from 3 locations, with an alert to your email via an action group. This catches the "error page hid the outage for days" failure from the pre-mortem.
+- [ ] 👤 Portal: add a **Standard availability test** on `https://<host>/healthz` every 5 min from 3 locations, with an alert to your email via an action group. This only proves the app process is up: `/healthz` never touches the database, so it cannot see a DB or AI outage (see next item).
+- [ ] 🤖 (👤 approve) **Failure alert** (added 2026-09-30, roadmap F-01): an App Insights alert rule on failed requests / server exceptions (e.g. > 3 in 15 min) to the same action group. This is what catches the "error page hid the outage for days" failure from the pre-mortem, plus AI generation failures (expired key, spend limit, 60 s timeout).
 - [ ] 👤 Portal: Cost Management → **Budget** of $25/month, with alerts at 80% actual and 100% forecast. After the PAYG upgrade there is no spending cap.
 - [ ] 👤 Anthropic console: confirm the workspace spend limit and email alerts.
 
