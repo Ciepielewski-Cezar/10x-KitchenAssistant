@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using KitchenAssistant.Components;
 using KitchenAssistant.Components.Account;
 using KitchenAssistant.Data;
-using KitchenAssistant.Products;
+using KitchenAssistant.Pantry;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +33,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<ProductService>();
+ProductService.EnsureGlobalizationData();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {

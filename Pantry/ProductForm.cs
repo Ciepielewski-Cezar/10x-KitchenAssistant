@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using KitchenAssistant.Data;
 
-namespace KitchenAssistant.Products;
+namespace KitchenAssistant.Pantry;
 
 // Input model for the add-product form. Messages are complete Polish sentences (no {0}), so property names never reach the user.
 public class ProductForm

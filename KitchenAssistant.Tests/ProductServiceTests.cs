@@ -1,5 +1,5 @@
 using KitchenAssistant.Data;
-using KitchenAssistant.Products;
+using KitchenAssistant.Pantry;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Time.Testing;
@@ -166,9 +166,62 @@ public sealed class ProductServiceTests : IDisposable
         await Assert.ThrowsAsync<ArgumentException>(() => _service.AddProductAsync(UserA, new ProductForm { Name = "mleko" }));
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public async Task Missing_user_id_is_rejected(string? userId)
+    {
+        await Assert.ThrowsAnyAsync<ArgumentException>(() => _service.GetProductsAsync(userId!));
+        await Assert.ThrowsAnyAsync<ArgumentException>(() => _service.AddProductAsync(userId!, Form("mleko")));
+    }
+
+    [Fact]
+    public async Task Add_that_loses_a_race_to_the_unique_index_is_a_duplicate()
+    {
+        // The rival row lands after the service's duplicate check, right before its insert.
+        var factory = new ConnectionDbContextFactory(_connection)
+        {
+            BeforeCreate = (call, db) =>
+            {
+                if (call == 2)
+                {
+                    db.Products.Add(new Product { UserId = UserA, Name = "mleko", NormalizedName = "MLEKO", Category = ProductCategory.UseFirst });
+                    db.SaveChanges();
+                }
+            },
+        };
+        var service = new ProductService(factory, _time);
+
+        Assert.Equal(AddProductResult.Duplicate, await service.AddProductAsync(UserA, Form("Mleko")));
+        Assert.Single((await _service.GetProductsAsync(UserA)).UseFirst);
+    }
+
+    [Fact]
+    public async Task Product_for_an_unknown_user_is_rejected_by_the_foreign_key()
+    {
+        await Assert.ThrowsAsync<DbUpdateException>(() => _service.AddProductAsync("no-such-user", Form("mleko")));
+    }
+
     private sealed class ConnectionDbContextFactory(SqliteConnection connection) : IDbContextFactory<ApplicationDbContext>
     {
-        public ApplicationDbContext CreateDbContext() =>
+        private int _calls;
+
+        // Runs on a separate context before the nth context is handed out (1-based).
+        public Action<int, ApplicationDbContext>? BeforeCreate { get; init; }
+
+        public ApplicationDbContext CreateDbContext()
+        {
+            var call = ++_calls;
+            if (BeforeCreate is not null)
+            {
+                using var db = Create();
+                BeforeCreate(call, db);
+            }
+
+            return Create();
+        }
+
+        private ApplicationDbContext Create() =>
             new(new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite(connection).Options);
     }
 }
