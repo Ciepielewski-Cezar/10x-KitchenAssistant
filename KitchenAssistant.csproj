@@ -8,6 +8,8 @@
     <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
     <!-- Image name for `dotnet publish /t:PublishContainer` (local prod-like stack, see compose.yaml). -->
     <ContainerRepository>kitchen-assistant</ContainerRepository>
+    <!-- The test project sits inside this project's folder; keep its sources out of the app's default globs. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);KitchenAssistant.Tests/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

@@ -292,15 +292,15 @@ The list is loaded in full per user. It holds tens of products, so in-memory sor
 
 #### Automated
 
-- [ ] 1.1 Solution builds: `dotnet build KitchenAssistant.slnx`
-- [ ] 1.2 Service tests pass: `dotnet test KitchenAssistant.slnx`
-- [ ] 1.3 No pending model changes: `dotnet ef migrations has-pending-model-changes` exits 0
-- [ ] 1.4 Migration applies to LocalDB: `dotnet ef database update`
-- [ ] 1.5 Generated `AddProducts` migration creates `Products` with cascade FK and unique index `(UserId, Category, NormalizedName)`
+- [x] 1.1 Solution builds: `dotnet build KitchenAssistant.slnx`
+- [x] 1.2 Service tests pass: `dotnet test KitchenAssistant.slnx`
+- [x] 1.3 No pending model changes: `dotnet ef migrations has-pending-model-changes` exits 0
+- [x] 1.4 Migration applies to LocalDB: `dotnet ef database update`
+- [x] 1.5 Generated `AddProducts` migration creates `Products` with cascade FK and unique index `(UserId, Category, NormalizedName)`
 
 #### Manual
 
-- [ ] 1.6 Identity still works after the DbContext factory switch (register, confirm, log in, log out)
+- [x] 1.6 Identity still works after the DbContext factory switch (register, confirm, log in, log out)
 
 ### Phase 2: `/products` page and navigation
 
