@@ -292,30 +292,30 @@ The list is loaded in full per user. It holds tens of products, so in-memory sor
 
 #### Automated
 
-- [x] 1.1 Solution builds: `dotnet build KitchenAssistant.slnx`
-- [x] 1.2 Service tests pass: `dotnet test KitchenAssistant.slnx`
-- [x] 1.3 No pending model changes: `dotnet ef migrations has-pending-model-changes` exits 0
-- [x] 1.4 Migration applies to LocalDB: `dotnet ef database update`
-- [x] 1.5 Generated `AddProducts` migration creates `Products` with cascade FK and unique index `(UserId, Category, NormalizedName)`
+- [x] 1.1 Solution builds: `dotnet build KitchenAssistant.slnx` — 90f5f15
+- [x] 1.2 Service tests pass: `dotnet test KitchenAssistant.slnx` — 90f5f15
+- [x] 1.3 No pending model changes: `dotnet ef migrations has-pending-model-changes` exits 0 — 90f5f15
+- [x] 1.4 Migration applies to LocalDB: `dotnet ef database update` — 90f5f15
+- [x] 1.5 Generated `AddProducts` migration creates `Products` with cascade FK and unique index `(UserId, Category, NormalizedName)` — 90f5f15
 
 #### Manual
 
-- [x] 1.6 Identity still works after the DbContext factory switch (register, confirm, log in, log out)
+- [x] 1.6 Identity still works after the DbContext factory switch (register, confirm, log in, log out) — 90f5f15
 
 ### Phase 2: `/products` page and navigation
 
 #### Automated
 
-- [ ] 2.1 Solution builds: `dotnet build KitchenAssistant.slnx`
-- [ ] 2.2 Tests still pass: `dotnet test KitchenAssistant.slnx`
-- [ ] 2.3 Anonymous request to `/products` is redirected (302) to `/Account/Login`
+- [x] 2.1 Solution builds: `dotnet build KitchenAssistant.slnx`
+- [x] 2.2 Tests still pass: `dotnet test KitchenAssistant.slnx`
+- [x] 2.3 Anonymous request to `/products` is redirected (302) to `/Account/Login`
 
 #### Manual
 
-- [ ] 2.4 Fresh account sees nav link, Home link and both sections with empty hints
-- [ ] 2.5 Name + category add lands in the right section A→Z, form clears and keeps category
-- [ ] 2.6 Quantity, expiry date and location are shown; today/past dates flagged „Sprawdź termin”, tomorrow not
-- [ ] 2.7 Same-category duplicate rejected with message; other category accepted
-- [ ] 2.8 Invalid input shows Polish validation messages and saves nothing
-- [ ] 2.9 Second account sees only its own products; data survives reload
-- [ ] 2.10 Production-like stack applies the migration at startup and the add flow works at http://localhost:8090/products
+- [x] 2.4 Fresh account sees nav link, Home link and both sections with empty hints
+- [x] 2.5 Name + category add lands in the right section A→Z, form clears and keeps category
+- [x] 2.6 Quantity, expiry date and location are shown; today/past dates flagged „Sprawdź termin”, tomorrow not
+- [x] 2.7 Same-category duplicate rejected with message; other category accepted
+- [x] 2.8 Invalid input shows Polish validation messages and saves nothing
+- [x] 2.9 Second account sees only its own products; data survives reload
+- [x] 2.10 Production-like stack applies the migration at startup and the add flow works at http://localhost:8090/products
