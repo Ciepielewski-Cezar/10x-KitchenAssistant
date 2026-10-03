@@ -4,7 +4,7 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using KitchenAssistant.Data
-@using KitchenAssistant.Products
+@using KitchenAssistant.Pantry
 
 @attribute [Authorize]
 
@@ -159,19 +159,28 @@ else if (products is not null)
 
     private async Task AddAsync()
     {
+        // The button is only disabled once the render reaches the browser, so a fast double click can still get here twice.
+        if (saving)
+        {
+            return;
+        }
+
         errorMessage = null;
         saving = true;
+        // Captured before the await, because the form may be replaced while the call is in flight.
+        var name = form.Name!.Trim();
+        var category = form.Category!.Value;
         try
         {
             var result = await ProductService.AddProductAsync(userId!, form);
             if (result == AddProductResult.Duplicate)
             {
-                errorMessage = $"Produkt „{form.Name!.Trim()}” jest już w kategorii „{ProductLabels.For(form.Category!.Value)}”.";
+                errorMessage = $"Produkt „{name}” jest już w kategorii „{ProductLabels.For(category)}”.";
                 return;
             }
 
             await LoadAsync();
-            form = new ProductForm { Category = form.Category };
+            form = new ProductForm { Category = category };
             focusName = true;
         }
         catch (Exception ex)

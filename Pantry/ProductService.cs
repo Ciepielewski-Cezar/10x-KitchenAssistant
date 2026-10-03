@@ -2,7 +2,7 @@ using System.Globalization;
 using KitchenAssistant.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace KitchenAssistant.Products;
+namespace KitchenAssistant.Pantry;
 
 public enum AddProductResult
 {
@@ -30,8 +30,16 @@ public class ProductService(IDbContextFactory<ApplicationDbContext> dbFactory, T
     private static readonly TimeZoneInfo Warsaw = TimeZoneInfo.FindSystemTimeZoneById("Europe/Warsaw");
     private static readonly StringComparer PolishComparer = StringComparer.Create(new CultureInfo("pl-PL"), ignoreCase: true);
 
+    // Called at startup, so a host without ICU or tzdata fails on deploy instead of on the first product request.
+    public static void EnsureGlobalizationData()
+    {
+        _ = Warsaw;
+        _ = PolishComparer;
+    }
+
     public async Task<ProductList> GetProductsAsync(string userId, CancellationToken ct = default)
     {
+        ArgumentException.ThrowIfNullOrEmpty(userId);
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var products = await db.Products
             .AsNoTracking()
@@ -50,6 +58,7 @@ public class ProductService(IDbContextFactory<ApplicationDbContext> dbFactory, T
 
     public async Task<AddProductResult> AddProductAsync(string userId, ProductForm form, CancellationToken ct = default)
     {
+        ArgumentException.ThrowIfNullOrEmpty(userId);
         var name = form.Name?.Trim();
         if (string.IsNullOrEmpty(name) || name.Length > MaxNameLength)
         {

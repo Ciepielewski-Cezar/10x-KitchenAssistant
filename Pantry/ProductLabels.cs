@@ -1,6 +1,6 @@
 using KitchenAssistant.Data;
 
-namespace KitchenAssistant.Products;
+namespace KitchenAssistant.Pantry;
 
 // Polish display text for the product enums.
 public static class ProductLabels

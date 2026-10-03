@@ -22,6 +22,7 @@ The code was generated from `dotnet new blazor --auth Individual`. The pages `Co
   - Identity endpoints the Razor components need (logout, passkeys, external login) are mapped in `Components/Account/IdentityComponentsEndpointRouteBuilderExtensions.cs`.
 - **Data.**
   - `Data/ApplicationDbContext` extends `IdentityDbContext<ApplicationUser>` and uses SQL Server. Development runs on LocalDB (connection string in `appsettings.json`); production runs on Azure SQL.
+- **Feature code.** Each feature's services, form models and labels live in a top-level feature folder with a matching namespace, e.g. `Pantry/` (`KitchenAssistant.Pantry`) holds `ProductService`. Pages call these services and never touch `ApplicationDbContext` directly. Don't give a feature folder the same name as a page class: a `Products` namespace would clash with `Components/Pages/Products.razor`.
 - **Deployment.** The target is Azure App Service, with GitHub Actions deploying on merge to `main`.
 
 ## Commands
