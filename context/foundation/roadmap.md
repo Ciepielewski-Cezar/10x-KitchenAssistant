@@ -3,7 +3,7 @@ project: Kitchen Assistant
 version: 1
 status: draft
 created: 2026-09-30
-updated: 2026-09-30
+updated: 2026-10-03
 prd_version: 2
 main_goal: speed
 top_blocker: time
@@ -42,7 +42,7 @@ Osoba gotująca dla siebie co najmniej raz w tygodniu traci czas na szukanie prz
 | ID   | Change ID               | Outcome (user can …)                                                                                           | Prerequisites | PRD refs                                   | Status   |
 | ---- | ----------------------- | -------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------ | -------- |
 | F-01 | deployment              | (foundation) aplikacja działa na produkcji z alertami o błędach, a merge do `main` wdraża ją automatycznie        | —             | frontmatter `timeline_budget`, NFR ≤ 1 min | ready    |
-| S-01 | pantry-add-products     | po zalogowaniu widzi swoją prywatną listę produktów i dodaje produkt do jednej z dwóch kategorii                | —             | FR-001, FR-002, US-01, Access Control      | ready    |
+| S-01 | pantry-add-products     | po zalogowaniu widzi swoją prywatną listę produktów i dodaje produkt do jednej z dwóch kategorii                | —             | FR-001, FR-002, US-01, Access Control      | in-progress |
 | S-02 | first-recipe-generation | prosi o przepisy i w ciągu minuty dostaje kilka propozycji wygenerowanych przez AI z jego produktów             | S-01, lokalny klucz API dostawcy AI (krok L2 planu local-dev) | US-01, FR-005, NFR ≤ 1 min, NFR struktura  | proposed |
 | S-03 | recipe-ranking          | widzi propozycje uporządkowane według oceny i liczby braków, które liczy aplikacja                              | S-02          | FR-005, US-01, Business Logic              | proposed |
 | S-04 | recipe-details          | otwiera szczegóły wybranej propozycji i widzi pełny przepis w spójnej strukturze                                | S-02          | FR-006, NFR struktura, NFR ≤ 1 min         | proposed |
@@ -99,7 +99,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** pierwsza encja domenowa i pierwsze wymuszenie prywatności danych per użytkownik; stoi pierwszy, bo zarówno generowanie przepisów, jak i edycja produktów potrzebują tej listy.
-- **Status:** ready
+- **Status:** in-progress
 
 ### S-02: Pierwsze generowanie przepisów
 

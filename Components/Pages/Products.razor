@@ -1,0 +1,197 @@
+@page "/products"
+@rendermode InteractiveServer
+
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using KitchenAssistant.Data
+@using KitchenAssistant.Products
+
+@attribute [Authorize]
+
+@inject ProductService ProductService
+@inject ILogger<Products> Logger
+
+<PageTitle>Moje produkty</PageTitle>
+
+<h1>Moje produkty</h1>
+
+<EditForm Model="form" OnValidSubmit="AddAsync" class="mb-4">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label for="product-name" class="form-label">Nazwa</label>
+        <InputText id="product-name" class="form-control" @bind-Value="form.Name" @ref="nameInput" />
+        <ValidationMessage For="() => form.Name" />
+    </div>
+
+    <fieldset class="mb-3">
+        <legend class="form-label fs-6">Kategoria</legend>
+        <InputRadioGroup Name="product-category" @bind-Value="form.Category">
+            <div class="form-check">
+                <InputRadio id="category-use-first" class="form-check-input" Value="@((ProductCategory?)ProductCategory.UseFirst)" />
+                <label for="category-use-first" class="form-check-label">@ProductLabels.For(ProductCategory.UseFirst)</label>
+            </div>
+            <div class="form-check">
+                <InputRadio id="category-stored" class="form-check-input" Value="@((ProductCategory?)ProductCategory.Stored)" />
+                <label for="category-stored" class="form-check-label">@ProductLabels.For(ProductCategory.Stored)</label>
+            </div>
+        </InputRadioGroup>
+        <ValidationMessage For="() => form.Category" />
+    </fieldset>
+
+    <div class="mb-3">
+        <label for="product-quantity" class="form-label">Ilość (opcjonalnie)</label>
+        <InputText id="product-quantity" class="form-control" @bind-Value="form.Quantity" />
+        <ValidationMessage For="() => form.Quantity" />
+    </div>
+
+    <div class="mb-3">
+        <label for="product-expires-on" class="form-label">Data ważności (opcjonalnie)</label>
+        <InputDate id="product-expires-on" class="form-control" @bind-Value="form.ExpiresOn" ParsingErrorMessage="Podaj poprawną datę." />
+        <ValidationMessage For="() => form.ExpiresOn" />
+    </div>
+
+    <div class="mb-3">
+        <label for="product-location" class="form-label">Miejsce przechowywania (opcjonalnie)</label>
+        <InputSelect id="product-location" class="form-select" @bind-Value="form.StorageLocation" ParsingErrorMessage="Wybierz poprawne miejsce przechowywania.">
+            <option value="">—</option>
+            @foreach (var location in Enum.GetValues<StorageLocation>())
+            {
+                <option value="@location">@ProductLabels.For(location)</option>
+            }
+        </InputSelect>
+        <ValidationMessage For="() => form.StorageLocation" />
+    </div>
+
+    <button type="submit" class="btn btn-primary" disabled="@saving">Dodaj</button>
+
+    @if (errorMessage is not null)
+    {
+        <div class="text-danger mt-2" role="alert">@errorMessage</div>
+    }
+</EditForm>
+
+@if (loadFailed)
+{
+    <div class="alert alert-danger" role="alert">Nie udało się wczytać produktów.</div>
+}
+else if (products is not null)
+{
+    <section class="mb-4">
+        <h2>@ProductLabels.For(ProductCategory.UseFirst)</h2>
+        @ProductSection(products.UseFirst)
+    </section>
+
+    <section class="mb-4">
+        <h2>@ProductLabels.For(ProductCategory.Stored)</h2>
+        @ProductSection(products.Stored)
+    </section>
+}
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    private ProductForm form = new();
+    private ProductList? products;
+    private InputText? nameInput;
+    private string? userId;
+    private string? errorMessage;
+    private bool loadFailed;
+    private bool saving;
+    private bool focusName;
+
+    private RenderFragment ProductSection(IReadOnlyList<ProductListItem> items) => __builder =>
+    {
+        if (items.Count == 0)
+        {
+            <p class="text-muted">Brak produktów w tej kategorii.</p>
+        }
+        else
+        {
+            <ul class="list-group">
+                @foreach (var item in items)
+                {
+                    <li class="list-group-item @(item.IsExpiryDue ? "list-group-item-warning" : null)">
+                        <strong>@item.Name</strong>
+                        @if (item.Quantity is not null)
+                        {
+                            <span class="ms-2">@item.Quantity</span>
+                        }
+                        @if (item.StorageLocation is { } location)
+                        {
+                            <span class="ms-2 text-muted">@ProductLabels.For(location)</span>
+                        }
+                        @if (item.ExpiresOn is { } expiresOn)
+                        {
+                            <span class="ms-2 text-muted">@expiresOn.ToString("dd.MM.yyyy")</span>
+                        }
+                        @if (item.IsExpiryDue)
+                        {
+                            <span class="badge text-bg-warning ms-2">Sprawdź termin</span>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask!;
+        userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            products = await ProductService.GetProductsAsync(userId!);
+            loadFailed = false;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load products.");
+            loadFailed = true;
+        }
+    }
+
+    private async Task AddAsync()
+    {
+        errorMessage = null;
+        saving = true;
+        try
+        {
+            var result = await ProductService.AddProductAsync(userId!, form);
+            if (result == AddProductResult.Duplicate)
+            {
+                errorMessage = $"Produkt „{form.Name!.Trim()}” jest już w kategorii „{ProductLabels.For(form.Category!.Value)}”.";
+                return;
+            }
+
+            await LoadAsync();
+            form = new ProductForm { Category = form.Category };
+            focusName = true;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to add a product.");
+            errorMessage = "Nie udało się zapisać produktu. Spróbuj ponownie.";
+        }
+        finally
+        {
+            saving = false;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // The reset form is rendered first, so the input can only be focused after that render.
+        if (focusName && nameInput?.Element is { } element)
+        {
+            focusName = false;
+            await element.FocusAsync();
+        }
+    }
+}

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using KitchenAssistant.Components;
 using KitchenAssistant.Components.Account;
 using KitchenAssistant.Data;
+using KitchenAssistant.Products;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,9 +26,13 @@ builder.Services.AddAuthentication(options =>
     .AddIdentityCookies();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+// A factory (which also registers a scoped ApplicationDbContext for Identity), so interactive pages can use short-lived contexts instead of one per circuit.
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<ProductService>();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
