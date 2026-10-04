@@ -43,7 +43,7 @@ Osoba gotująca dla siebie co najmniej raz w tygodniu traci czas na szukanie prz
 | ---- | ----------------------- | -------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------ | -------- |
 | F-01 | deployment              | (foundation) aplikacja działa na produkcji z alertami o błędach, a merge do `main` wdraża ją automatycznie        | —             | frontmatter `timeline_budget`, NFR ≤ 1 min | ready    |
 | S-01 | pantry-add-products     | po zalogowaniu widzi swoją prywatną listę produktów i dodaje produkt do jednej z dwóch kategorii                | —             | FR-001, FR-002, US-01, Access Control      | done        |
-| S-02 | first-recipe-generation | prosi o przepisy i w ciągu minuty dostaje kilka propozycji wygenerowanych przez AI z jego produktów             | S-01, lokalny klucz API dostawcy AI (krok L2 planu local-dev) | US-01, FR-005, NFR ≤ 1 min, NFR struktura  | planning |
+| S-02 | first-recipe-generation | prosi o przepisy i w ciągu minuty dostaje kilka propozycji wygenerowanych przez AI z jego produktów             | S-01, lokalny klucz API dostawcy AI (krok L2 planu local-dev) | US-01, FR-005, NFR ≤ 1 min, NFR struktura  | in-progress |
 | S-03 | recipe-ranking          | widzi propozycje uporządkowane według oceny i liczby braków, które liczy aplikacja                              | S-02          | FR-005, US-01, Business Logic              | proposed |
 | S-04 | recipe-details          | otwiera szczegóły wybranej propozycji i widzi pełny przepis w spójnej strukturze                                | S-02          | FR-006, NFR struktura, NFR ≤ 1 min         | proposed |
 | S-05 | meal-parameters         | wybiera parametry posiłku z małego zestawu, a propozycje je respektują                                          | S-02          | FR-004, US-01, Business Logic              | proposed |
@@ -112,7 +112,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Czy wygenerowanie 5 pełnych przepisów w jednym wywołaniu mieści się w minucie, czy trzeba to rozdzielić (lista propozycji, potem pełny przepis)? — Owner: team (do zbadania w `/10x-plan`). Block: no.
 - **Risk:** najbardziej ryzykowne założenie produktu (jakość i czas odpowiedzi AI) — stoi zaraz po `S-01`, żeby ewentualna zmiana podejścia wyszła, zanim powstanie reszta.
-- **Status:** planning
+- **Status:** in-progress
 
 ### S-03: Kolejność i ocena propozycji
 

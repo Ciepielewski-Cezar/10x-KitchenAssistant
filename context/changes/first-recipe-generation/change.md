@@ -1,7 +1,7 @@
 ---
 change_id: first-recipe-generation
 title: First recipe generation
-status: plan_reviewed
+status: implementing
 created: 2026-10-03
 updated: 2026-10-04
 archived_at: null

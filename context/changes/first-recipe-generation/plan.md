@@ -362,13 +362,13 @@ No database change. Configuration adds a `Recipes` section; production needs onl
 
 #### Automated
 
-- [ ] 1.1 Build succeeds with no new warnings: `dotnet build`
-- [ ] 1.2 All tests pass, including the new Recipes tests: `dotnet test KitchenAssistant.slnx`
-- [ ] 1.3 No model changes: `dotnet ef migrations has-pending-model-changes` exits 0
+- [x] 1.1 Build succeeds with no new warnings: `dotnet build`
+- [x] 1.2 All tests pass, including the new Recipes tests: `dotnet test KitchenAssistant.slnx`
+- [x] 1.3 No model changes: `dotnet ef migrations has-pending-model-changes` exits 0
 
 #### Manual
 
-- [ ] 1.4 The system prompt, a sample user message and the schema read sensibly to you (optionally paste them into Claude under your Max subscription to sanity-check the Polish output)
+- [x] 1.4 The system prompt, a sample user message and the schema read sensibly to you (optionally paste them into Claude under your Max subscription to sanity-check the Polish output)
 
 ### Phase 2: Anthropic generator and the /recipes page
 
