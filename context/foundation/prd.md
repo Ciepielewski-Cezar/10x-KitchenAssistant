@@ -3,7 +3,7 @@ project: "Kitchen Assistant"
 version: 2
 status: draft
 created: 2026-09-24
-updated: 2026-09-30
+updated: 2026-10-04
 context_type: greenfield
 product_type: web-app
 target_scale:
@@ -88,7 +88,7 @@ Parametry posiłku to: rodzaj posiłku (śniadanie, obiad, kolacja, przekąska),
 
 AI otrzymuje produkty użytkownika wraz z ich identyfikatorami. Dla składnika pochodzącego z produktów użytkownika zwraca identyfikator tego produktu, a brakującemu składnikowi nadaje nazwę. Aplikacja uznaje składnik za posiadany tylko wtedy, gdy zwrócony identyfikator istnieje na liście produktów tego użytkownika.
 
-Składniki z krótkiej, stałej listy „zawsze w domu” (np. sól, pieprz, olej, woda) nie są liczone jako braki i nie wchodzą do oceny.
+Składniki ze stałej listy „zawsze w domu” — sól, olej, woda oraz typowe suszone przyprawy (np. pieprz, papryka słodka, oregano, cynamon) — nie są liczone jako braki i nie wchodzą do oceny. Lista jest zamknięta i utrzymywana w aplikacji; przyprawa spoza listy jest zwykłym składnikiem (decyzja 2026-10-04, rozszerzenie o przyprawy).
 
 „Mała lista braków” oznacza maksymalnie 2 brakujące składniki. AI otrzymuje ten sam limit, a aplikacja odrzuca propozycje, które go przekraczają.
 
