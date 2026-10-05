@@ -51,6 +51,6 @@ public static class RecipePrompt
         return message.ToString();
     }
 
-    // Keeps one product per line whatever the user typed.
-    private static string OneLine(string text) => text.ReplaceLineEndings(" ").Trim();
+    // Keeps one product per line, and four fields per product, whatever the user typed.
+    private static string OneLine(string text) => text.ReplaceLineEndings(" ").Replace('|', '/').Trim();
 }

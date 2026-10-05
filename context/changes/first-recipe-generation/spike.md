@@ -8,7 +8,7 @@ Phase 3 of `plan.md` is the only step that calls the real Anthropic API. It answ
 
 The measurements below decide the committed `Recipes:Model` / `Recipes:Effort` defaults in `appsettings.json`. They also decide whether S-04 needs a second AI call. Budget: about 10–20 calls, well under $2.
 
-Status: **not run yet** (template prepared 2026-10-05).
+Status (2026-10-05): **smoke test passed; the 10-call measurement is deferred** until the MVP is nearly ready (deadline 2026-10-22). The single production-like call finished in 14.5 s (see [Smoke test](#smoke-test-production-like-stack-plan-step-4)), so the one-call approach looks viable, but that is one data point, not the measurement the plan asks for. Until the spike runs, the `appsettings.json` defaults (Sonnet 5.5 / low) stay as they are and plan rows 3.1–3.5 stay open.
 
 ## Runbook (you run it; the agent fills the table from your log lines)
 
@@ -72,14 +72,16 @@ Each successful click writes two Information lines to the console (each log entr
 info: KitchenAssistant.Recipes.AnthropicRecipeGenerator[0]
       Recipe generation call: model claude-sonnet-5-5, effort low, 23456 ms, stop reason end_turn, input tokens 1234, output tokens 3456, thinking tokens 789.
 info: KitchenAssistant.Recipes.RecipeService[0]
-      Recipe classification: 5 recipes returned, 5 proposals kept; ingredients owned by ID 18, owned by name 1, always at home 7, missing 3, unknown IDs 0.
+      Recipe classification: 5 recipes returned, 5 proposals kept; kept ingredients owned by ID 18, owned by name 1, always at home 7, missing 3; returned product IDs 19, unknown 0.
 ```
 
 (The numbers above are made-up examples.)
 
 Also copy any of these if they appear:
 
+- `info: … AnthropicRecipeGenerator` — `Recipe generation call failed: model …, effort …, N ms, <ExceptionType>.` (timing of a failed call)
 - `warn: … RecipeService` — `The recipe generator returned N product IDs not on the user's list …`
+- `warn: … RecipeService` — the product list was trimmed to `Recipes:MaxProducts` (should not happen with this 25-product pantry)
 - `fail: … RecipeService` — timeout after the 60 s deadline, a per-attempt timeout, `Recipe generation failed: …` (for example `The model stopped with 'max_tokens' …`), or `The Anthropic API call for recipe generation failed.` together with the exception message below it. A 400 on the schema (for example about the nullable `productId`) shows up here.
 
 These lines contain no secrets: no key, no product list, no recipe text. **You can paste them into chat as they are**, together with your quality notes, and the agent fills in the table and the summary.
@@ -122,7 +124,7 @@ Categories as the form labels them (`Pantry/ProductLabels.cs`): **Zużyj w pierw
 
 Model `claude-sonnet-5-5`, effort `low`, `MaxTokens` 16000, deadline 60 s, meal parameters: obiad, do 30 minut, 1 porcja.
 
-Column sources: elapsed s = `ElapsedMs` / 1000 from the generator line (it covers the SDK call, including any retry); tokens and stop reason come from the same line; recipes = `proposals kept` (with `recipes returned` in brackets when different); owned-by-ID, owned-by-name and unknown-ID come from the classification line. Counts cover the ingredients of the kept proposals.
+Column sources: elapsed s = `ElapsedMs` / 1000 from the generator line (it covers the SDK call, including any retry); tokens and stop reason come from the same line; recipes = `proposals kept` (with `recipes returned` in brackets when different); owned-by-ID and owned-by-name come from the classification line's kept-ingredient breakdown; unknown-ID is written as `unknown / returned product IDs` (both counted over every recipe the AI returned, kept or not).
 
 | # | elapsed s | stop reason | input tok | output tok | thinking tok | recipes | owned-by-ID | owned-by-name | unknown-ID | quality note |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -151,7 +153,7 @@ Rows 1–10 only (row 0 excluded).
   - Pricing assumption: Sonnet 5.5 at $2 per 1M input tokens and $10 per 1M output tokens. Source: `research.md` § "Claude API facts", from the bundled `claude-api` skill's model table, cached 2026-09-25. Thinking is billed as output.
   - Formula: `(avg input × 2 + avg output × 10) / 1,000,000`.
   - TODO: confirm in the Console usage view that `output tokens` already includes `thinking tokens`. If it does not, add thinking to output in the formula. Also check the prices against the current Anthropic pricing page before writing down the figure.
-- **ID validity rate:** _TBD_ % = Σ owned-by-ID / (Σ owned-by-ID + Σ unknown-ID). This is the share of non-null product IDs from the AI that were on the user's list.
+- **ID validity rate:** _TBD_ % = 1 − Σ unknown / Σ returned product IDs. This is the share of non-null product IDs from the AI that were on the user's list.
 - **Name-fallback rate:** _TBD_ % = Σ owned-by-name / (Σ owned-by-ID + Σ owned-by-name). This is the share of owned ingredients for which the AI gave no ID and the exact-name match decided ownership.
 - **Quality:** _TBD_ (Polish throughout? steps logical? fits obiad / ≤ 30 min / 1 porcja?)
 - **Verdict:** _TBD_ — one of:
@@ -208,7 +210,13 @@ If the API rejects the nullable `productId` (`"type": ["integer", "null"]`), the
 4. At http://localhost:8090/recipes, click „Zaproponuj przepisy” once.
 5. Copy the two lines `Recipe generation call:` and `Recipe classification:` from `docker compose logs app`.
 
-Result: _TBD_ (proposals shown yes/no, elapsed s, stop reason, any errors)
+Result (2026-10-05): **pass**. Image rebuilt from the working tree (including the impl-review fixes), Production environment, Anthropic generator, key from `.env`.
+
+- `Recipe generation call: model claude-sonnet-5-5, effort low, 14519 ms, stop reason end_turn, input tokens 1792, output tokens 2157, thinking tokens 0.`
+- `Recipe classification: 5 recipes returned, 5 proposals kept; kept ingredients owned by ID 20, owned by name 0, always at home 18, missing 0; returned product IDs 20, unknown 0.`
+- 5 proposals shown at http://localhost:8090/recipes. 14.5 s, well inside the 60 s deadline. All 20 product IDs valid; no name fallback needed.
+- Cost of this call at the assumed $2 / $10 per 1M tokens: (1792 × 2 + 2157 × 10) / 1,000,000 ≈ **$0.025**.
+- First attempt showed no recipe log lines: the container was still on a 2026-10-03 image (started with `-NoBuild`) and `.env` had an empty `ANTHROPIC_API_KEY`. Fixed by filling `.env` and running `./scripts/local-prod.ps1` without `-NoBuild`.
 
 ## Cleanup
 

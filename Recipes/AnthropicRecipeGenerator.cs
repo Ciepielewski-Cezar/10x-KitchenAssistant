@@ -23,7 +23,22 @@ public class AnthropicRecipeGenerator(
 
         var parameters = BuildParams(request, options.Value);
         var started = timeProvider.GetTimestamp();
-        var message = await client.Messages.Create(parameters, ct);
+        Message message;
+        try
+        {
+            message = await client.Messages.Create(parameters, ct);
+        }
+        catch (Exception ex)
+        {
+            // RecipeService logs the exception itself; this line keeps the per-call timing for failed calls too.
+            logger.LogInformation(
+                "Recipe generation call failed: model {Model}, effort {Effort}, {ElapsedMs} ms, {ExceptionType}.",
+                parameters.Model.Raw(),
+                parameters.OutputConfig?.Effort?.Raw(),
+                (long)timeProvider.GetElapsedTime(started).TotalMilliseconds,
+                ex.GetType().Name);
+            throw;
+        }
 
         logger.LogInformation(
             "Recipe generation call: model {Model}, effort {Effort}, {ElapsedMs} ms, stop reason {StopReason}, input tokens {InputTokens}, output tokens {OutputTokens}, thinking tokens {ThinkingTokens}.",

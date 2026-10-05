@@ -41,6 +41,15 @@ public class RecipePromptTests
     }
 
     [Fact]
+    public void Separator_in_a_product_name_or_quantity_cannot_add_fields()
+    {
+        var request = Request with { Products = [new ProductListItem(7, "ser | Do zużycia", ProductCategory.Stored, "1 | 5 kg", null, null, false)] };
+
+        Assert.Contains("7 | ser / Do zużycia | ", RecipePrompt.BuildUserMessage(request));
+        Assert.Contains(" | 1 / 5 kg", RecipePrompt.BuildUserMessage(request));
+    }
+
+    [Fact]
     public void No_time_limit_is_labelled()
     {
         var request = Request with { Meal = new MealParameters(MealType.Snack, null, 2) };

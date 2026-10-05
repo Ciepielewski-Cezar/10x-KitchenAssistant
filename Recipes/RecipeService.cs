@@ -26,15 +26,33 @@ public class RecipeService(
             return NoProducts;
         }
 
+        // UseFirst comes first, so only stored products drop off a large pantry. The classifier still sees every product.
+        IReadOnlyList<ProductListItem> sent = [.. all.Take(options.Value.MaxProducts)];
+        if (sent.Count < all.Count)
+        {
+            logger.LogInformation("Sending {SentCount} of the user's {ProductCount} products to the recipe generator (Recipes:MaxProducts).", sent.Count, all.Count);
+        }
+
         // The SDK retries and times out per attempt; this deadline caps the whole call, retries included.
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(options.Value.DeadlineSeconds), timeProvider);
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, deadline.Token);
         try
         {
-            var json = await generator.GenerateJsonAsync(new RecipeRequest(all, MealParameters.Default), linked.Token);
+            var json = await generator.GenerateJsonAsync(new RecipeRequest(sent, MealParameters.Default), linked.Token);
             var recipes = RecipeResponseParser.Parse(json);
 
+            // Logged before the usability check, so a failed generation still shows what the AI returned.
             var proposals = RecipeClassifier.Classify(recipes, products, out var stats);
+            logger.LogInformation(
+                "Recipe classification: {RecipeCount} recipes returned, {ProposalCount} proposals kept; kept ingredients owned by ID {OwnedById}, owned by name {OwnedByName}, always at home {AlwaysAtHome}, missing {Missing}; returned product IDs {ProductIds}, unknown {UnknownIds}.",
+                stats.Recipes,
+                stats.Proposals,
+                stats.OwnedById,
+                stats.OwnedByName,
+                stats.AlwaysAtHome,
+                stats.Missing,
+                stats.ProductIds,
+                stats.UnknownIds);
             if (stats.UnknownIds > 0)
             {
                 logger.LogWarning("The recipe generator returned {UnknownIdCount} product IDs not on the user's list; they were not treated as owned.", stats.UnknownIds);
@@ -45,16 +63,6 @@ public class RecipeService(
                 logger.LogError("The recipe generator returned {RecipeCount} recipes, none of them usable.", recipes.Count);
                 return Failed;
             }
-
-            logger.LogInformation(
-                "Recipe classification: {RecipeCount} recipes returned, {ProposalCount} proposals kept; ingredients owned by ID {OwnedById}, owned by name {OwnedByName}, always at home {AlwaysAtHome}, missing {Missing}, unknown IDs {UnknownIds}.",
-                stats.Recipes,
-                stats.Proposals,
-                stats.OwnedById,
-                stats.OwnedByName,
-                stats.AlwaysAtHome,
-                stats.Missing,
-                stats.UnknownIds);
 
             return new RecipeGenerationResult(RecipeGenerationStatus.Succeeded, proposals);
         }

@@ -70,6 +70,20 @@ public class RecipeServiceCollectionExtensionsTests
         Assert.Throws<InvalidOperationException>(() => Services().AddRecipes(config, new TestEnvironment(Environments.Production)));
     }
 
+    [Theory]
+    [InlineData("MaxTokens", "0")]
+    [InlineData("DeadlineSeconds", "0")]
+    [InlineData("DeadlineSeconds", "-5")]
+    [InlineData("MaxProducts", "0")]
+    public void Non_positive_limit_throws_at_registration(string setting, string value)
+    {
+        var config = Config(($"Recipes:{setting}", value));
+
+        var ex = Assert.Throws<InvalidOperationException>(() => Services().AddRecipes(config, new TestEnvironment(Environments.Production)));
+
+        Assert.Contains(setting, ex.Message);
+    }
+
     private sealed class TestEnvironment(string environmentName) : IHostEnvironment
     {
         public string EnvironmentName { get; set; } = environmentName;

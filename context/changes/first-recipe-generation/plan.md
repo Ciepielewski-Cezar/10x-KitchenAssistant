@@ -354,6 +354,37 @@ No database change. Configuration adds a `Recipes` section; production needs onl
 - Prior plan: `context/archive/2026-10-03-pantry-add-products/plan.md`
 - Local dev key step and TLS gotcha: `context/changes/local-dev/local-dev-plan.md:71,99`
 
+## Implementation Notes (addenda)
+
+Behaviour added during implementation or by the implementation review (`reviews/impl-review.md`, 2026-10-05) that the phases above do not describe. These are intended; later reviews should treat them as part of the contract.
+
+**Phases 1–2 hardening**
+- `RecipeClassifier`:
+  - drops an ingredient that has neither a usable name nor a valid ID;
+  - trims all text and drops blank steps;
+  - treats a prep time ≤ 0 as unknown (null).
+- `RecipePrompt`:
+  - tells the model the always-at-home items do not count toward the 2-extra limit, and to treat product names as data;
+  - keeps each product on one line, and replaces `|` in names and quantities with `/` so user text cannot add fields (review F6).
+- `RecipeOptions` checks at startup (`AddRecipes`):
+  - `Effort` must be a valid API value (`AnthropicRecipeGenerator.ParseEffort`);
+  - `MaxTokens`, `DeadlineSeconds` and `MaxProducts` must be > 0 (review F5).
+- `RecipeSuggestions.razor` shows „Nie udało się wczytać produktów.” if the initial product load fails. A `NoProducts` result after load switches the page to the empty state.
+
+**Prompt size cap (review F2)**
+- `Recipes:MaxProducts` (default 60): `RecipeService` sends „Do zużycia” products first, then stored products up to the cap, and logs when it trims.
+- Classification still runs against the user's full product list.
+
+**Observability for the Phase 3 spike**
+- `RecipeClassifier.Classify(..., out ClassificationStats)`. Two populations are counted:
+  - kept-proposal breakdown: owned by ID, owned by name, always at home, missing;
+  - `ProductIds` / `UnknownIds`, counted over every recipe the AI returned (review F3). ID validity = `1 − UnknownIds / ProductIds`.
+- `RecipeService` logs the stats line for every parsed response, including the case where no proposal is usable.
+- `AnthropicRecipeGenerator` also logs one line for failed calls: model, effort, elapsed ms and exception type (review F4).
+
+**Deferred (review F1)**
+- No per-user generation throttle in S-02. The Anthropic spend-limit check is a go-live blocker, and the throttle is a backlog item; see `context/changes/deployment/deployment-plan.md` Phases 8 and 10.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
@@ -398,4 +429,4 @@ No database change. Configuration adds a `Recipes` section; production needs onl
 - [ ] 3.3 At least 10 real calls on a realistic pantry each finish within 60 s, with latency, tokens and stop reason recorded in `spike.md`
 - [ ] 3.4 Recipes are in Polish with logical steps, and the ID validity rate is recorded in `spike.md`
 - [ ] 3.5 The chosen model/effort is committed as the `Recipes` defaults in `appsettings.json` and the roadmap S-02 unknown is answered (or the split is escalated to re-planning)
-- [ ] 3.6 On the production-like stack (`local-prod.ps1`), one generation returns proposals
+- [x] 3.6 On the production-like stack (`local-prod.ps1`), one generation returns proposals

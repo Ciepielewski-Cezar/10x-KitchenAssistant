@@ -3,7 +3,7 @@ project: Kitchen Assistant
 version: 1
 status: draft
 created: 2026-09-30
-updated: 2026-10-04
+updated: 2026-10-05
 prd_version: 2
 main_goal: speed
 top_blocker: time
@@ -111,6 +111,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:**
   - Czy wygenerowanie 5 pełnych przepisów w jednym wywołaniu mieści się w minucie, czy trzeba to rozdzielić (lista propozycji, potem pełny przepis)? — Owner: team (do zbadania w `/10x-plan`). Block: no.
+    - Wstępnie (2026-10-05): jedno wywołanie (Sonnet 5.5 / low) — 14,5 s i 5 propozycji w smoke teście na stosie produkcyjnym; pełny pomiar 10 wywołań przed MVP (`context/changes/first-recipe-generation/spike.md`).
 - **Risk:** najbardziej ryzykowne założenie produktu (jakość i czas odpowiedzi AI) — stoi zaraz po `S-01`, żeby ewentualna zmiana podejścia wyszła, zanim powstanie reszta.
 - **Status:** in-progress
 

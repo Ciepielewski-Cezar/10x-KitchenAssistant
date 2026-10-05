@@ -17,6 +17,9 @@ public static class RecipeServiceCollectionExtensions
 
         // Fails at startup on a typo instead of with a 400 on the first click.
         AnthropicRecipeGenerator.ParseEffort(options.Effort);
+        RequirePositive(options.MaxTokens, nameof(RecipeOptions.MaxTokens));
+        RequirePositive(options.DeadlineSeconds, nameof(RecipeOptions.DeadlineSeconds));
+        RequirePositive(options.MaxProducts, nameof(RecipeOptions.MaxProducts));
 
         services.Configure<RecipeOptions>(section);
         services.AddScoped<RecipeService>();
@@ -31,5 +34,13 @@ public static class RecipeServiceCollectionExtensions
         }
 
         return services;
+    }
+
+    private static void RequirePositive(int value, string name)
+    {
+        if (value <= 0)
+        {
+            throw new InvalidOperationException($"{RecipeOptions.SectionName}:{name} is {value}; it must be greater than 0.");
+        }
     }
 }

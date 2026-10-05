@@ -196,14 +196,16 @@ public class RecipeClassifierTests
                 new AiIngredient(99, "pieprz", null),
                 new AiIngredient(99, null, null),
             ]),
-            // Dropped (no steps), so its ingredients are not counted.
-            Recipe(ingredients: [new AiIngredient(2, "mleko", null), new AiIngredient(98, "łosoś", null)], steps: []),
+            // Dropped (no steps): its ingredients are not in the kept breakdown, but its product IDs are counted.
+            Recipe(ingredients: [new AiIngredient(2, "mleko", null), new AiIngredient(98, "łosoś", null), new AiIngredient(97, "tofu", null)], steps: []),
             null!,
         ];
 
         var proposals = RecipeClassifier.Classify(recipes, Products, out var stats);
 
-        Assert.Equal(new ClassificationStats(Recipes: 3, Proposals: 1, OwnedById: 5, OwnedByName: 1, AlwaysAtHome: 2, Missing: 4, UnknownIds: 3), stats);
+        Assert.Equal(
+            new ClassificationStats(Recipes: 3, Proposals: 1, OwnedById: 5, OwnedByName: 1, AlwaysAtHome: 2, Missing: 4, ProductIds: 12, UnknownIds: 6),
+            stats);
         Assert.Equal(
             new[]
             {

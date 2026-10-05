@@ -40,8 +40,8 @@ public sealed class RecipeServiceTests : IDisposable
 
     public void Dispose() => _connection.Dispose();
 
-    private RecipeService Service(IRecipeGenerator generator) =>
-        new(_products, generator, Options.Create(new RecipeOptions()), _time, NullLogger<RecipeService>.Instance);
+    private RecipeService Service(IRecipeGenerator generator, RecipeOptions? options = null) =>
+        new(_products, generator, Options.Create(options ?? new RecipeOptions()), _time, NullLogger<RecipeService>.Instance);
 
     private async Task<int> AddAsync(string userId, string name, ProductCategory category = ProductCategory.UseFirst)
     {
@@ -80,6 +80,23 @@ public sealed class RecipeServiceTests : IDisposable
         var request = Assert.Single(generator.Requests);
         Assert.Equal(new[] { eggs, rice }, request.Products.Select(p => p.Id));
         Assert.Equal(MealParameters.Default, request.Meal);
+    }
+
+    [Fact]
+    public async Task A_large_pantry_sends_use_first_products_first_up_to_MaxProducts()
+    {
+        var rice = await AddAsync(UserA, "ryż", ProductCategory.Stored);
+        var pasta = await AddAsync(UserA, "makaron", ProductCategory.Stored);
+        var eggs = await AddAsync(UserA, "jajka");
+        var generator = new StubGenerator((_, _) => Task.FromResult(Json(new AiIngredient(eggs, "jajka", "2 szt."))));
+
+        var result = await Service(generator, new RecipeOptions { MaxProducts = 2 }).GenerateAsync(UserA);
+
+        Assert.Equal(RecipeGenerationStatus.Succeeded, result.Status);
+        var request = Assert.Single(generator.Requests);
+        // Stored products are sorted by name, so "makaron" comes before "ryż" and "ryż" is the one left out.
+        Assert.Equal(new[] { eggs, pasta }, request.Products.Select(p => p.Id));
+        Assert.DoesNotContain(rice, request.Products.Select(p => p.Id));
     }
 
     [Fact]

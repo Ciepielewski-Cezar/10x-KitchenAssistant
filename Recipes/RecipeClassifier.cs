@@ -71,8 +71,22 @@ public static class RecipeClassifier
             proposals.Add(proposal);
         }
 
+        // ID validity is measured over everything the AI returned, including dropped and over-the-cap recipes.
+        var returnedIds = recipes
+            .SelectMany(r => r?.Ingredients ?? [])
+            .Select(i => i?.ProductId)
+            .OfType<int>()
+            .ToList();
+
         stats = new ClassificationStats(
-            recipes.Count, proposals.Count, tally.OwnedById, tally.OwnedByName, tally.AlwaysAtHome, tally.Missing, tally.UnknownIds);
+            recipes.Count,
+            proposals.Count,
+            tally.OwnedById,
+            tally.OwnedByName,
+            tally.AlwaysAtHome,
+            tally.Missing,
+            returnedIds.Count,
+            returnedIds.Count(id => !byId.ContainsKey(id)));
         return proposals;
     }
 
@@ -140,8 +154,6 @@ public static class RecipeClassifier
 
         public int Missing { get; private set; }
 
-        public int UnknownIds { get; private set; }
-
         public void Add(AiIngredient source, ProposalIngredient ingredient)
         {
             // A non-null ID is never matched by name, so an owned ingredient with a null ID was owned by name.
@@ -160,18 +172,13 @@ public static class RecipeClassifier
                     Missing++;
                     break;
             }
-
-            // An ID that did not make the ingredient owned is not on this user's list.
-            if (source.ProductId is not null && ingredient.Status != IngredientStatus.Owned)
-            {
-                UnknownIds++;
-            }
         }
     }
 }
 
-// How the ingredients of the kept proposals were classified. UnknownIds are ingredients whose AI product ID is not on
-// the user's list; they are also counted in AlwaysAtHome or Missing.
+// OwnedById … Missing count how the ingredients of the kept proposals were classified. ProductIds and UnknownIds count
+// every product ID in every recipe the AI returned (dropped and over-the-cap recipes included); UnknownIds are the ones
+// not on the user's list.
 internal sealed record ClassificationStats(
     int Recipes,
     int Proposals,
@@ -179,4 +186,5 @@ internal sealed record ClassificationStats(
     int OwnedByName,
     int AlwaysAtHome,
     int Missing,
+    int ProductIds,
     int UnknownIds);
