@@ -100,6 +100,37 @@ public sealed class RecipeServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task More_use_first_products_than_MaxProducts_cuts_use_first_too()
+    {
+        var milk = await AddAsync(UserA, "mleko");
+        var eggs = await AddAsync(UserA, "jajka");
+        await AddAsync(UserA, "ryż", ProductCategory.Stored);
+        var generator = new StubGenerator((_, _) => Task.FromResult(Json(new AiIngredient(eggs, "jajka", "2 szt."))));
+
+        await Service(generator, new RecipeOptions { MaxProducts = 1 }).GenerateAsync(UserA);
+
+        // UseFirst is sorted by name, not by expiry, so "jajka" is sent and "mleko" is left out.
+        var request = Assert.Single(generator.Requests);
+        Assert.Equal(new[] { eggs }, request.Products.Select(p => p.Id));
+        Assert.DoesNotContain(milk, request.Products.Select(p => p.Id));
+    }
+
+    [Fact]
+    public async Task A_product_left_out_by_MaxProducts_is_still_owned_by_name()
+    {
+        await AddAsync(UserA, "jajka");
+        var rice = await AddAsync(UserA, "ryż", ProductCategory.Stored);
+        var generator = new StubGenerator((_, _) => Task.FromResult(Json(new AiIngredient(null, "ryż", "100 g"))));
+
+        var result = await Service(generator, new RecipeOptions { MaxProducts = 1 }).GenerateAsync(UserA);
+
+        Assert.DoesNotContain(rice, Assert.Single(generator.Requests).Products.Select(p => p.Id));
+        var ingredient = Assert.Single(Assert.Single(result.Proposals).Ingredients);
+        Assert.Equal(IngredientStatus.Owned, ingredient.Status);
+        Assert.Equal(rice, ingredient.ProductId);
+    }
+
+    [Fact]
     public async Task Another_users_product_id_is_missing()
     {
         var eggs = await AddAsync(UserA, "jajka");

@@ -26,7 +26,8 @@ public class RecipeService(
             return NoProducts;
         }
 
-        // UseFirst comes first, so only stored products drop off a large pantry. The classifier still sees every product.
+        // UseFirst is sent first (each section sorted by name); anything past the cap is left out of the prompt. The
+        // classifier still sees every product, so a left-out product the AI names exactly is still owned.
         IReadOnlyList<ProductListItem> sent = [.. all.Take(options.Value.MaxProducts)];
         if (sent.Count < all.Count)
         {
@@ -55,7 +56,7 @@ public class RecipeService(
                 stats.UnknownIds);
             if (stats.UnknownIds > 0)
             {
-                logger.LogWarning("The recipe generator returned {UnknownIdCount} product IDs not on the user's list; they were not treated as owned.", stats.UnknownIds);
+                logger.LogWarning("The recipe generator returned {UnknownIdCount} product IDs not on the user's list.", stats.UnknownIds);
             }
 
             if (proposals.Count == 0)

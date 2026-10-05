@@ -79,7 +79,7 @@ info: KitchenAssistant.Recipes.RecipeService[0]
 
 Also copy any of these if they appear:
 
-- `info: … AnthropicRecipeGenerator` — `Recipe generation call failed: model …, effort …, N ms, <ExceptionType>.` (timing of a failed call)
+- `info: … AnthropicRecipeGenerator` — `Recipe generation call ended without a response: model …, effort …, N ms, <ExceptionType>.` (timing of a failed or cancelled call)
 - `warn: … RecipeService` — `The recipe generator returned N product IDs not on the user's list …`
 - `warn: … RecipeService` — the product list was trimmed to `Recipes:MaxProducts` (should not happen with this 25-product pantry)
 - `fail: … RecipeService` — timeout after the 60 s deadline, a per-attempt timeout, `Recipe generation failed: …` (for example `The model stopped with 'max_tokens' …`), or `The Anthropic API call for recipe generation failed.` together with the exception message below it. A 400 on the schema (for example about the nullable `productId`) shows up here.

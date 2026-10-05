@@ -30,9 +30,10 @@ public class AnthropicRecipeGenerator(
         }
         catch (Exception ex)
         {
-            // RecipeService logs the exception itself; this line keeps the per-call timing for failed calls too.
+            // The caller logs the exception itself; this line keeps the per-call timing when no response arrives, including
+            // a cancellation (deadline, per-attempt timeout or the user leaving the page).
             logger.LogInformation(
-                "Recipe generation call failed: model {Model}, effort {Effort}, {ElapsedMs} ms, {ExceptionType}.",
+                "Recipe generation call ended without a response: model {Model}, effort {Effort}, {ElapsedMs} ms, {ExceptionType}.",
                 parameters.Model.Raw(),
                 parameters.OutputConfig?.Effort?.Raw(),
                 (long)timeProvider.GetElapsedTime(started).TotalMilliseconds,

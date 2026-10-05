@@ -366,13 +366,14 @@ Behaviour added during implementation or by the implementation review (`reviews/
 - `RecipePrompt`:
   - tells the model the always-at-home items do not count toward the 2-extra limit, and to treat product names as data;
   - keeps each product on one line, and replaces `|` in names and quantities with `/` so user text cannot add fields (review F6).
+  - Known limitation (accepted, Phase 3 review F5): the exact-name fallback compares against the stored name, not the prompt's normalized one. If a product named `a|b` (or one containing a line break) gets back a null ID and the AI echoes `a/b`, the ingredient is marked missing. This needs a `|` or line break in the name, an omitted ID and an echoed normalized name all at once. The smoke test had 20/20 valid IDs.
 - `RecipeOptions` checks at startup (`AddRecipes`):
   - `Effort` must be a valid API value (`AnthropicRecipeGenerator.ParseEffort`);
   - `MaxTokens`, `DeadlineSeconds` and `MaxProducts` must be > 0 (review F5).
 - `RecipeSuggestions.razor` shows „Nie udało się wczytać produktów.” if the initial product load fails. A `NoProducts` result after load switches the page to the empty state.
 
 **Prompt size cap (review F2)**
-- `Recipes:MaxProducts` (default 60): `RecipeService` sends „Do zużycia” products first, then stored products up to the cap, and logs when it trims.
+- `Recipes:MaxProducts` (default 60): `RecipeService` sends „Do zużycia” products first, then stored ones, each section sorted by name. Anything past the cap is left out of the prompt, „Do zużycia” products included if there are more of them than the cap, and the service logs when it trims.
 - Classification still runs against the user's full product list.
 
 **Observability for the Phase 3 spike**
@@ -429,4 +430,4 @@ Behaviour added during implementation or by the implementation review (`reviews/
 - [ ] 3.3 At least 10 real calls on a realistic pantry each finish within 60 s, with latency, tokens and stop reason recorded in `spike.md`
 - [ ] 3.4 Recipes are in Polish with logical steps, and the ID validity rate is recorded in `spike.md`
 - [ ] 3.5 The chosen model/effort is committed as the `Recipes` defaults in `appsettings.json` and the roadmap S-02 unknown is answered (or the split is escalated to re-planning)
-- [x] 3.6 On the production-like stack (`local-prod.ps1`), one generation returns proposals
+- [x] 3.6 On the production-like stack (`local-prod.ps1`), one generation returns proposals — 3c24ae6
