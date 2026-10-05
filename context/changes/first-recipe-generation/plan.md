@@ -362,29 +362,29 @@ No database change. Configuration adds a `Recipes` section; production needs onl
 
 #### Automated
 
-- [x] 1.1 Build succeeds with no new warnings: `dotnet build`
-- [x] 1.2 All tests pass, including the new Recipes tests: `dotnet test KitchenAssistant.slnx`
-- [x] 1.3 No model changes: `dotnet ef migrations has-pending-model-changes` exits 0
+- [x] 1.1 Build succeeds with no new warnings: `dotnet build` — 214a0a9
+- [x] 1.2 All tests pass, including the new Recipes tests: `dotnet test KitchenAssistant.slnx` — 214a0a9
+- [x] 1.3 No model changes: `dotnet ef migrations has-pending-model-changes` exits 0 — 214a0a9
 
 #### Manual
 
-- [x] 1.4 The system prompt, a sample user message and the schema read sensibly to you (optionally paste them into Claude under your Max subscription to sanity-check the Polish output)
+- [x] 1.4 The system prompt, a sample user message and the schema read sensibly to you (optionally paste them into Claude under your Max subscription to sanity-check the Polish output) — 214a0a9
 
 ### Phase 2: Anthropic generator and the /recipes page
 
 #### Automated
 
-- [ ] 2.1 Build succeeds with no new warnings: `dotnet build`
-- [ ] 2.2 All tests pass, including the Anthropic generator and DI-guard tests: `dotnet test KitchenAssistant.slnx`
-- [ ] 2.3 No model changes: `dotnet ef migrations has-pending-model-changes` exits 0
+- [x] 2.1 Build succeeds with no new warnings: `dotnet build`
+- [x] 2.2 All tests pass, including the Anthropic generator and DI-guard tests: `dotnet test KitchenAssistant.slnx`
+- [x] 2.3 No model changes: `dotnet ef migrations has-pending-model-changes` exits 0
 
 #### Manual
 
-- [ ] 2.4 On the fake generator, a signed-in user with products opens „Przepisy” from the nav, clicks the button, sees the spinner text, then proposal cards with Masz / Zawsze w domu / Brakuje badges and numbered steps; the unknown-ID ingredient shows as Brakuje
-- [ ] 2.5 A user with no products sees the disabled button and the link to `/products`
-- [ ] 2.6 A second account sees only its own product names in proposals
-- [ ] 2.7 An anonymous visit to `/recipes` redirects to login
-- [ ] 2.8 With `Recipes:Generator = Anthropic` and no key, clicking shows the Polish error and „Spróbuj ponownie” within seconds, and the log names the cause
+- [x] 2.4 On the fake generator, a signed-in user with products opens „Przepisy” from the nav, clicks the button, sees the spinner text, then proposal cards with Masz / Zawsze w domu / Brakuje badges and numbered steps; the unknown-ID ingredient shows as Brakuje
+- [x] 2.5 A user with no products sees the disabled button and the link to `/products`
+- [x] 2.6 A second account sees only its own product names in proposals
+- [x] 2.7 An anonymous visit to `/recipes` redirects to login
+- [x] 2.8 With `Recipes:Generator = Anthropic` and no key, clicking shows the Polish error and „Spróbuj ponownie” within seconds, and the log names the cause
 
 ### Phase 3: Live gate — spike and smoke test
 
