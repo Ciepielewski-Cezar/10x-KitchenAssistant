@@ -34,20 +34,27 @@ public class RecipeService(
             var json = await generator.GenerateJsonAsync(new RecipeRequest(all, MealParameters.Default), linked.Token);
             var recipes = RecipeResponseParser.Parse(json);
 
-            var unknownIds = recipes
-                .SelectMany(r => r?.Ingredients ?? [])
-                .Count(i => i is not null && RecipeClassifier.IsUnknownId(i, products));
-            if (unknownIds > 0)
+            var proposals = RecipeClassifier.Classify(recipes, products, out var stats);
+            if (stats.UnknownIds > 0)
             {
-                logger.LogWarning("The recipe generator returned {UnknownIdCount} product IDs not on the user's list; they were classified as missing.", unknownIds);
+                logger.LogWarning("The recipe generator returned {UnknownIdCount} product IDs not on the user's list; they were not treated as owned.", stats.UnknownIds);
             }
 
-            var proposals = RecipeClassifier.Classify(recipes, products);
             if (proposals.Count == 0)
             {
                 logger.LogError("The recipe generator returned {RecipeCount} recipes, none of them usable.", recipes.Count);
                 return Failed;
             }
+
+            logger.LogInformation(
+                "Recipe classification: {RecipeCount} recipes returned, {ProposalCount} proposals kept; ingredients owned by ID {OwnedById}, owned by name {OwnedByName}, always at home {AlwaysAtHome}, missing {Missing}, unknown IDs {UnknownIds}.",
+                stats.Recipes,
+                stats.Proposals,
+                stats.OwnedById,
+                stats.OwnedByName,
+                stats.AlwaysAtHome,
+                stats.Missing,
+                stats.UnknownIds);
 
             return new RecipeGenerationResult(RecipeGenerationStatus.Succeeded, proposals);
         }

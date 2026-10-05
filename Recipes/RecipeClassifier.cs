@@ -43,12 +43,18 @@ public static class RecipeClassifier
     private static readonly StringComparer PolishComparer = StringComparer.Create(new CultureInfo("pl-PL"), ignoreCase: true);
     private static readonly HashSet<string> AlwaysAtHome = new(AlwaysAtHomeItems, PolishComparer);
 
-    internal static IReadOnlyList<RecipeProposal> Classify(IReadOnlyList<AiRecipe> recipes, ProductList products)
+    internal static IReadOnlyList<RecipeProposal> Classify(IReadOnlyList<AiRecipe> recipes, ProductList products) =>
+        Classify(recipes, products, out _);
+
+    // Also reports how the kept proposals' ingredients were decided, so the generation log shows how often the AI's
+    // product IDs were valid.
+    internal static IReadOnlyList<RecipeProposal> Classify(IReadOnlyList<AiRecipe> recipes, ProductList products, out ClassificationStats stats)
     {
         // UseFirst comes first, so a name owned in both sections resolves to the product to use up.
         var owned = products.UseFirst.Concat(products.Stored).ToList();
         var byId = owned.ToDictionary(p => p.Id);
 
+        var tally = new Tally();
         var proposals = new List<RecipeProposal>();
         foreach (var recipe in recipes)
         {
@@ -57,7 +63,7 @@ public static class RecipeClassifier
                 break;
             }
 
-            if (recipe is null || Classify(recipe, owned, byId) is not { } proposal)
+            if (recipe is null || Classify(recipe, owned, byId, tally) is not { } proposal)
             {
                 continue;
             }
@@ -65,30 +71,34 @@ public static class RecipeClassifier
             proposals.Add(proposal);
         }
 
+        stats = new ClassificationStats(
+            recipes.Count, proposals.Count, tally.OwnedById, tally.OwnedByName, tally.AlwaysAtHome, tally.Missing, tally.UnknownIds);
         return proposals;
     }
 
-    // True when the AI returned an ID that is not on this user's list; such an ID is ignored, never trusted.
-    internal static bool IsUnknownId(AiIngredient ingredient, ProductList products) =>
-        ingredient.ProductId is { } id && !products.UseFirst.Concat(products.Stored).Any(p => p.Id == id);
-
-    // A recipe without a title, ingredients or steps is dropped (null).
-    private static RecipeProposal? Classify(AiRecipe recipe, List<ProductListItem> owned, Dictionary<int, ProductListItem> byId)
+    // A recipe without a title, ingredients or steps is dropped (null); only a kept recipe's ingredients are counted.
+    private static RecipeProposal? Classify(AiRecipe recipe, List<ProductListItem> owned, Dictionary<int, ProductListItem> byId, Tally tally)
     {
         var title = Clean(recipe.Title);
-        var ingredients = (recipe.Ingredients ?? [])
+        var classified = (recipe.Ingredients ?? [])
             .Where(i => i is not null)
-            .Select(i => Classify(i, owned, byId))
-            .OfType<ProposalIngredient>()
+            .Select(i => (Source: i, Ingredient: Classify(i, owned, byId)))
+            .Where(c => c.Ingredient is not null)
             .ToList();
         var steps = (recipe.Steps ?? []).Select(Clean).OfType<string>().ToList();
 
-        if (title is null || ingredients.Count == 0 || steps.Count == 0)
+        if (title is null || classified.Count == 0 || steps.Count == 0)
         {
             return null;
         }
 
+        foreach (var (source, ingredient) in classified)
+        {
+            tally.Add(source, ingredient!);
+        }
+
         var prepTime = recipe.PrepTimeMinutes is > 0 ? recipe.PrepTimeMinutes : null;
+        var ingredients = classified.Select(c => c.Ingredient!).ToList();
         return new RecipeProposal(title, Clean(recipe.Summary), prepTime, ingredients, steps);
     }
 
@@ -118,4 +128,55 @@ public static class RecipeClassifier
     }
 
     private static string? Clean(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+
+    // Reads the decisions made above; it never decides a status itself.
+    private sealed class Tally
+    {
+        public int OwnedById { get; private set; }
+
+        public int OwnedByName { get; private set; }
+
+        public int AlwaysAtHome { get; private set; }
+
+        public int Missing { get; private set; }
+
+        public int UnknownIds { get; private set; }
+
+        public void Add(AiIngredient source, ProposalIngredient ingredient)
+        {
+            // A non-null ID is never matched by name, so an owned ingredient with a null ID was owned by name.
+            switch (ingredient.Status)
+            {
+                case IngredientStatus.Owned when source.ProductId is null:
+                    OwnedByName++;
+                    break;
+                case IngredientStatus.Owned:
+                    OwnedById++;
+                    break;
+                case IngredientStatus.AlwaysAtHome:
+                    AlwaysAtHome++;
+                    break;
+                default:
+                    Missing++;
+                    break;
+            }
+
+            // An ID that did not make the ingredient owned is not on this user's list.
+            if (source.ProductId is not null && ingredient.Status != IngredientStatus.Owned)
+            {
+                UnknownIds++;
+            }
+        }
+    }
 }
+
+// How the ingredients of the kept proposals were classified. UnknownIds are ingredients whose AI product ID is not on
+// the user's list; they are also counted in AlwaysAtHome or Missing.
+internal sealed record ClassificationStats(
+    int Recipes,
+    int Proposals,
+    int OwnedById,
+    int OwnedByName,
+    int AlwaysAtHome,
+    int Missing,
+    int UnknownIds);

@@ -175,6 +175,49 @@ public class RecipeClassifierTests
     }
 
     [Fact]
+    public void Stats_count_how_the_kept_ingredients_were_classified()
+    {
+        // Every count differs from the others, so a swapped counter cannot pass.
+        AiRecipe[] recipes =
+        [
+            Recipe(ingredients:
+            [
+                new AiIngredient(1, "jajka", null),
+                new AiIngredient(2, "mleko", null),
+                new AiIngredient(3, "makaron", null),
+                new AiIngredient(5, "Mleko", null),
+                new AiIngredient(1, "jajka", null),
+                new AiIngredient(null, " Makaron", null),
+                new AiIngredient(null, "sól", null),
+                new AiIngredient(null, "śmietana", null),
+                new AiIngredient(null, "łosoś", null),
+                new AiIngredient(99, "ser żółty", null),
+                new AiIngredient(98, "tofu", null),
+                new AiIngredient(99, "pieprz", null),
+                new AiIngredient(99, null, null),
+            ]),
+            // Dropped (no steps), so its ingredients are not counted.
+            Recipe(ingredients: [new AiIngredient(2, "mleko", null), new AiIngredient(98, "łosoś", null)], steps: []),
+            null!,
+        ];
+
+        var proposals = RecipeClassifier.Classify(recipes, Products, out var stats);
+
+        Assert.Equal(new ClassificationStats(Recipes: 3, Proposals: 1, OwnedById: 5, OwnedByName: 1, AlwaysAtHome: 2, Missing: 4, UnknownIds: 3), stats);
+        Assert.Equal(
+            new[]
+            {
+                IngredientStatus.Owned, IngredientStatus.Owned, IngredientStatus.Owned, IngredientStatus.Owned, IngredientStatus.Owned,
+                IngredientStatus.Owned, IngredientStatus.AlwaysAtHome, IngredientStatus.Missing, IngredientStatus.Missing,
+                IngredientStatus.Missing, IngredientStatus.Missing, IngredientStatus.AlwaysAtHome,
+            },
+            Assert.Single(proposals).Ingredients.Select(i => i.Status));
+        Assert.Equal(
+            Assert.Single(RecipeClassifier.Classify(recipes, Products)).Ingredients,
+            proposals[0].Ingredients);
+    }
+
+    [Fact]
     public void Always_at_home_list_has_the_decided_25_items()
     {
         Assert.Equal(25, RecipeClassifier.AlwaysAtHomeItems.Count);

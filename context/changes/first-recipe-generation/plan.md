@@ -374,17 +374,17 @@ No database change. Configuration adds a `Recipes` section; production needs onl
 
 #### Automated
 
-- [x] 2.1 Build succeeds with no new warnings: `dotnet build`
-- [x] 2.2 All tests pass, including the Anthropic generator and DI-guard tests: `dotnet test KitchenAssistant.slnx`
-- [x] 2.3 No model changes: `dotnet ef migrations has-pending-model-changes` exits 0
+- [x] 2.1 Build succeeds with no new warnings: `dotnet build` — 10bd128
+- [x] 2.2 All tests pass, including the Anthropic generator and DI-guard tests: `dotnet test KitchenAssistant.slnx` — 10bd128
+- [x] 2.3 No model changes: `dotnet ef migrations has-pending-model-changes` exits 0 — 10bd128
 
 #### Manual
 
-- [x] 2.4 On the fake generator, a signed-in user with products opens „Przepisy” from the nav, clicks the button, sees the spinner text, then proposal cards with Masz / Zawsze w domu / Brakuje badges and numbered steps; the unknown-ID ingredient shows as Brakuje
-- [x] 2.5 A user with no products sees the disabled button and the link to `/products`
-- [x] 2.6 A second account sees only its own product names in proposals
-- [x] 2.7 An anonymous visit to `/recipes` redirects to login
-- [x] 2.8 With `Recipes:Generator = Anthropic` and no key, clicking shows the Polish error and „Spróbuj ponownie” within seconds, and the log names the cause
+- [x] 2.4 On the fake generator, a signed-in user with products opens „Przepisy” from the nav, clicks the button, sees the spinner text, then proposal cards with Masz / Zawsze w domu / Brakuje badges and numbered steps; the unknown-ID ingredient shows as Brakuje — 10bd128
+- [x] 2.5 A user with no products sees the disabled button and the link to `/products` — 10bd128
+- [x] 2.6 A second account sees only its own product names in proposals — 10bd128
+- [x] 2.7 An anonymous visit to `/recipes` redirects to login — 10bd128
+- [x] 2.8 With `Recipes:Generator = Anthropic` and no key, clicking shows the Polish error and „Spróbuj ponownie” within seconds, and the log names the cause — 10bd128
 
 ### Phase 3: Live gate — spike and smoke test
 
