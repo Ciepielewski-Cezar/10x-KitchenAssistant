@@ -7,6 +7,7 @@ using KitchenAssistant.Components;
 using KitchenAssistant.Components.Account;
 using KitchenAssistant.Data;
 using KitchenAssistant.Pantry;
+using KitchenAssistant.Recipes;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,9 +60,14 @@ var anthropicApiKey = builder.Configuration["ANTHROPIC_API_KEY"];
 builder.Services.AddSingleton(_ => new AnthropicClient
 {
     ApiKey = anthropicApiKey,
-    // The PRD caps recipe generation at about one minute; the SDK default is 10 minutes.
+    // Per attempt; the SDK default is 10 minutes. RecipeService adds one deadline (Recipes:DeadlineSeconds) for
+    // the whole click, retries included.
     Timeout = TimeSpan.FromSeconds(60),
+    // The SDK default is 2 retries, so one failing click could take ~3 minutes. One retry still covers a quick
+    // 429/529, and the deadline cancels anything still running at 60 s.
+    MaxRetries = 1,
 });
+builder.Services.AddRecipes(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 

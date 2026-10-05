@@ -1,0 +1,185 @@
+@page "/recipes"
+@rendermode InteractiveServer
+@implements IDisposable
+
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using KitchenAssistant.Pantry
+@using KitchenAssistant.Recipes
+
+@attribute [Authorize]
+
+@inject RecipeService RecipeService
+@inject ProductService ProductService
+@inject ILogger<RecipeSuggestions> Logger
+
+<PageTitle>Przepisy</PageTitle>
+
+<h1>Przepisy</h1>
+
+@if (loadFailed)
+{
+    <div class="alert alert-danger" role="alert">Nie udało się wczytać produktów.</div>
+}
+else
+{
+    @if (hasProducts == false)
+    {
+        <p>Najpierw dodaj produkty. <a href="products">Przejdź do swoich produktów</a></p>
+    }
+
+    <div class="mb-4">
+        <button type="button" class="btn btn-primary" disabled="@(generating || hasProducts != true)" @onclick="GenerateAsync">
+            Zaproponuj przepisy
+        </button>
+
+        @if (generating)
+        {
+            <div class="mt-3" role="status">
+                <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+                Generuję przepisy… to może potrwać do minuty
+            </div>
+        }
+    </div>
+
+    @if (failed)
+    {
+        <div class="alert alert-danger d-flex align-items-center" role="alert">
+            <span>Nie udało się wygenerować przepisów.</span>
+            <button type="button" class="btn btn-outline-danger btn-sm ms-3" disabled="@generating" @onclick="GenerateAsync">Spróbuj ponownie</button>
+        </div>
+    }
+
+    @if (proposals is not null)
+    {
+        @foreach (var proposal in proposals)
+        {
+            <article class="card mb-3">
+                <div class="card-body">
+                    <h2 class="card-title h4">@proposal.Title</h2>
+                    @if (proposal.Summary is not null)
+                    {
+                        <p class="card-text">@proposal.Summary</p>
+                    }
+                    @if (proposal.PrepTimeMinutes is { } minutes)
+                    {
+                        <p class="card-text text-muted">ok. @minutes min</p>
+                    }
+
+                    <h3 class="h6">Składniki</h3>
+                    <ul class="list-group mb-3">
+                        @foreach (var ingredient in proposal.Ingredients)
+                        {
+                            <li class="list-group-item">
+                                @ingredient.Name
+                                @if (ingredient.Amount is not null)
+                                {
+                                    <span class="ms-2 text-muted">@ingredient.Amount</span>
+                                }
+                                @IngredientBadge(ingredient.Status)
+                            </li>
+                        }
+                    </ul>
+
+                    <h3 class="h6">Przygotowanie</h3>
+                    <ol class="mb-0">
+                        @foreach (var step in proposal.Steps)
+                        {
+                            <li>@step</li>
+                        }
+                    </ol>
+                </div>
+            </article>
+        }
+    }
+}
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
+
+    // Cancelled when the user leaves the page, so a running generation stops with it.
+    private readonly CancellationTokenSource cts = new();
+    private string? userId;
+    private bool? hasProducts;
+    private bool loadFailed;
+    private bool generating;
+    private bool failed;
+    private IReadOnlyList<RecipeProposal>? proposals;
+
+    private static RenderFragment IngredientBadge(IngredientStatus status) => status switch
+    {
+        IngredientStatus.Owned => @<span class="badge text-bg-success ms-2">Masz</span>,
+        IngredientStatus.AlwaysAtHome => @<span class="badge text-bg-secondary ms-2">Zawsze w domu</span>,
+        _ => @<span class="badge text-bg-warning ms-2">Brakuje</span>,
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask!;
+        userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        try
+        {
+            var products = await ProductService.GetProductsAsync(userId!, cts.Token);
+            hasProducts = products.UseFirst.Count + products.Stored.Count > 0;
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            // The user left the page; nothing to render.
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load products for recipe suggestions.");
+            loadFailed = true;
+        }
+    }
+
+    private async Task GenerateAsync()
+    {
+        // The button is only disabled once the render reaches the browser, so a fast double click can still get here twice.
+        if (generating)
+        {
+            return;
+        }
+
+        generating = true;
+        failed = false;
+        proposals = null;
+        try
+        {
+            var result = await RecipeService.GenerateAsync(userId!, cts.Token);
+            switch (result.Status)
+            {
+                case RecipeGenerationStatus.Succeeded:
+                    proposals = result.Proposals;
+                    break;
+                case RecipeGenerationStatus.NoProducts:
+                    // The products were removed after the page loaded.
+                    hasProducts = false;
+                    break;
+                default:
+                    failed = true;
+                    break;
+            }
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            // The user left the page; nothing to render.
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to generate recipes.");
+            failed = true;
+        }
+        finally
+        {
+            generating = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        cts.Cancel();
+        cts.Dispose();
+    }
+}

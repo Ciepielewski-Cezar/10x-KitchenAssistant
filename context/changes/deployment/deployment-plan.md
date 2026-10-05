@@ -251,7 +251,7 @@ Steps inside the script:
 - [ ] 👤 Portal: add a **Standard availability test** on `https://<host>/healthz` every 5 min from 3 locations, with an alert to your email via an action group. This only proves the app process is up: `/healthz` never touches the database, so it cannot see a DB or AI outage (see next item).
 - [ ] 🤖 (👤 approve) **Failure alert** (added 2026-09-30, roadmap F-01): an App Insights alert rule on failed requests / server exceptions (e.g. > 3 in 15 min) to the same action group. This is what catches the "error page hid the outage for days" failure from the pre-mortem, plus AI generation failures (expired key, spend limit, 60 s timeout).
 - [ ] 👤 Portal: Cost Management → **Budget** of $25/month, with alerts at 80% actual and 100% forecast. After the PAYG upgrade there is no spending cap.
-- [ ] 👤 Anthropic console: confirm the workspace spend limit and email alerts.
+- [ ] 👤 Anthropic console: confirm the workspace spend limit and email alerts. **Go-live blocker for recipe generation (S-02):** sign-up is open and there is no per-user limit on generation, so this cap is the only bound on AI cost (impl-review F1, first-recipe-generation).
 
 ---
 
@@ -278,6 +278,7 @@ Steps inside the script:
 - [ ] Key Vault references for `ANTHROPIC_API_KEY`.
 - [ ] Real email confirmation (Azure Communication Services Email) and re-enable `RequireConfirmedAccount`.
 - [ ] P0v3 + a `staging` slot if zero-downtime deploys are needed.
+- [ ] Per-user throttle for recipe generation: one generation in flight per user plus a short cooldown, shared across instances if the app scales out (impl-review F1, first-recipe-generation).
 
 ---
 

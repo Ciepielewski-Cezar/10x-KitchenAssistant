@@ -22,4 +22,9 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.12" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Lets the tests build the AI response DTOs (Recipes/RecipeResponseParser.cs) directly. -->
+    <InternalsVisibleTo Include="KitchenAssistant.Tests" />
+  </ItemGroup>
+
 </Project>
