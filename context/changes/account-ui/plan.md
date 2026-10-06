@@ -452,36 +452,36 @@ No database change. `AspNetUsers.PhoneNumber` stays, unused. Status cookies writ
 
 #### Automated
 
-- [x] 2.1 `dotnet build` succeeds
-- [x] 2.2 `dotnet test` passes, including `StatusMessageCookieTests`
-- [x] 2.3 `StatusMessage.razor` no longer contains `StartsWith("Error")`
-- [x] 2.4 Hardcoded-value scan on `FormField.razor` and `Products.razor` returns 0 hits
+- [x] 2.1 `dotnet build` succeeds — fd1495e
+- [x] 2.2 `dotnet test` passes, including `StatusMessageCookieTests` — fd1495e
+- [x] 2.3 `StatusMessage.razor` no longer contains `StartsWith("Error")` — fd1495e
+- [x] 2.4 Hardcoded-value scan on `FormField.razor` and `Products.razor` returns 0 hits — fd1495e
 
 #### Manual
 
-- [x] 2.5 `/products` at desktop looks the same as before
-- [x] 2.6 Empty-name submit on `/products` still shows the validation message and invalid outline
-- [x] 2.7 After adding a product, focus returns to Nazwa
-- [x] 2.8 An English Account error (wrong current password) still renders `alert-danger`
+- [x] 2.5 `/products` at desktop looks the same as before — fd1495e
+- [x] 2.6 Empty-name submit on `/products` still shows the validation message and invalid outline — fd1495e
+- [x] 2.7 After adding a product, focus returns to Nazwa — fd1495e
+- [x] 2.8 An English Account error (wrong current password) still renders `alert-danger` — fd1495e
 
 ### Phase 3: The Profile view (C4, C5)
 
 #### Automated
 
-- [ ] 3.1 `dotnet build` succeeds
-- [ ] 3.2 `dotnet test` passes
-- [ ] 3.3 Hardcoded-value scan on the four view files returns 0 hits
-- [ ] 3.4 No `PhoneNumber`, `form-floating`, English layout heading, Two-factor or Passkeys strings left in the view files
-- [ ] 3.5 `App.razor` declares `lang="pl"`
+- [x] 3.1 `dotnet build` succeeds
+- [x] 3.2 `dotnet test` passes
+- [x] 3.3 Hardcoded-value scan on the four view files returns 0 hits
+- [x] 3.4 No `PhoneNumber`, `form-floating`, English layout heading, Two-factor or Passkeys strings left in the view files
+- [x] 3.5 `App.razor` declares `lang="pl"`
 
 #### Manual
 
-- [ ] 3.6 `/Account/Manage` at desktop shows h1 "Moje konto", menu with Profil active, h2 "Profil" and the read-only E-mail field, all in Polish
-- [ ] 3.7 At 375 px the three pills sit in one row above the content
-- [ ] 3.8 Tab order Profil → Hasło → Dane osobowe, each with the green focus ring
-- [ ] 3.9 Menu is exposed as navigation "Ustawienia konta"
-- [ ] 3.10 Email, TwoFactorAuthentication and Passkeys routes still load by URL
-- [ ] 3.11 Hasło and Dane osobowe open under the new layout without a layout break
+- [x] 3.6 `/Account/Manage` at desktop shows h1 "Moje konto", menu with Profil active, h2 "Profil" and the read-only E-mail field, all in Polish
+- [x] 3.7 At 375 px the three pills sit in one row above the content
+- [x] 3.8 Tab order Profil → Hasło → Dane osobowe, each with the green focus ring
+- [x] 3.9 Menu is exposed as navigation "Ustawienia konta"
+- [x] 3.10 Email, TwoFactorAuthentication and Passkeys routes still load by URL
+- [x] 3.11 Hasło and Dane osobowe open under the new layout without a layout break
 
 ### Phase 4: States, visual gate and guard
 
