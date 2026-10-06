@@ -20,8 +20,18 @@ Other checks:
 - `/dev/ui` returns the not-found page when the app runs in Production (4.8).
 - `/Account/Manage` and `/products` at desktop and 375 px show no regression (4.7).
 
-Screenshots: the checks were done by hand in the browser by the change owner. No screenshot files were saved into
-the repo, so there are no file names to list. Add them here if they are captured later.
+Screenshots saved in `screenshots/`:
+
+- `dev-ui-desktop.png`: `/dev/ui` at 1280 px in Development. Shows the default, read-only, disabled and error
+  FormField, both buttons, the three StatusMessage variants (success, error, legacy "Error:" in red) and the menu.
+  Taken in headless Edge on a build of this change, after the review.
+
+Not captured as files (checked by hand by the change owner, no file exists):
+
+- `/dev/ui` at 375 px. Headless Edge cannot render below about 500 px, and the app's `X-Frame-Options` header
+  blocks the iframe workaround, so the width was not forced.
+- `/Account/Manage` and `/products` at both widths. Both need a signed-in user.
+- Hover and focus-visible. A static screenshot cannot show them.
 
 ## Deferred charges
 
