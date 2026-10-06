@@ -4,11 +4,11 @@
 
 **Kitchen Assistant**: a web app that takes the ingredients a user already has and has AI generate recipes from them. The product spec is in `context/foundation/prd.md` (written in Polish), and the stack rationale is in `context/foundation/tech-stack.md`. Read the PRD before building a feature. Its Functional Requirements (FR-001…FR-006), Business Logic and Open Questions define the scope. MVP deadline: 2026-10-22.
 
-The code was generated from `dotnet new blazor --auth Individual`. The pages `Counter`/`Weather`/`Auth` are template samples, not product features.
+The code was generated from `dotnet new blazor --auth Individual`. The template's sample pages (`Counter`, `Weather`, `Auth`) have been removed.
 
 ## Hard rules
 
-- **Render mode is per page.** `Components/App.razor` renders `<Routes />` with no global `@rendermode`, so pages default to static SSR. A page opts into interactivity with `@rendermode InteractiveServer`, as `Components/Pages/Counter.razor` does. The pages under `Components/Account/` must stay static SSR, because Identity sign-in needs `HttpContext` and cookies.
+- **Render mode is per page.** `Components/App.razor` renders `<Routes />` with no global `@rendermode`, so pages default to static SSR. A page opts into interactivity with `@rendermode InteractiveServer` (`AddInteractiveServerComponents` is already wired in `Program.cs`). The pages under `Components/Account/` must stay static SSR, because Identity sign-in needs `HttpContext` and cookies.
 - Domain entities go in `Data/`, with a `DbSet` on `ApplicationDbContext`. Each per-user entity is keyed to `ApplicationUser`, because the PRD requires every user's data to be private.
 - **Scores come from app code, never from the AI.** Recipe score, missing-ingredient count and sort order are computed in C# by comparing each generated recipe's ingredients with the user's products. Never read those values from LLM output (see the PRD's *Business Logic*).
 - The AI recipe generator (FR-005) must use the LLM's structured output.
