@@ -317,7 +317,12 @@
     --bs-list-group-color: var(--card-foreground);
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-select:focus, .form-check-input:focus {
+hr {
+    color: var(--border);
+    opacity: 1;
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .nav-link:focus-visible, .form-control:focus, .form-select:focus, .form-check-input:focus {
     box-shadow: 0 0 0 0.1rem var(--background), 0 0 0 0.25rem var(--bs-focus-ring-color);
 }
 
@@ -366,4 +371,8 @@ h1:focus {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
+}
+
+.form-floating > :disabled ~ label, .form-floating > .form-control:disabled ~ label {
+    color: var(--muted-foreground);
 }

@@ -1,0 +1,26 @@
+@namespace KitchenAssistant.Components.Ui
+@typeparam TValue
+@using System.Linq.Expressions
+
+<div class="mb-3">
+    <label for="@Id" class="form-label">@Label</label>
+    @ChildContent
+    @if (For is not null)
+    {
+        <ValidationMessage For="For" />
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Id { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public RenderFragment ChildContent { get; set; } = default!;
+
+    [Parameter]
+    public Expression<Func<TValue>>? For { get; set; }
+}

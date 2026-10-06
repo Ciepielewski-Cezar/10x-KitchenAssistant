@@ -1,6 +1,6 @@
-﻿@if (!string.IsNullOrEmpty(DisplayMessage))
+@if (!string.IsNullOrEmpty(DisplayMessage))
 {
-    var statusMessageClass = DisplayMessage.StartsWith("Error") ? "danger" : "success";
+    var statusMessageClass = StatusMessageCookie.Resolve(DisplayMessage, DisplayKind) == StatusKind.Error ? "danger" : "success";
     <div class="alert alert-@statusMessageClass" role="alert">
         @DisplayMessage
     </div>
@@ -8,21 +8,28 @@
 
 @code {
     private string? messageFromCookie;
+    private StatusKind? kindFromCookie;
 
     [Parameter]
     public string? Message { get; set; }
+
+    [Parameter]
+    public StatusKind? Kind { get; set; }
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
 
     private string? DisplayMessage => Message ?? messageFromCookie;
 
+    private StatusKind? DisplayKind => Message is not null ? Kind : kindFromCookie;
+
     protected override void OnInitialized()
     {
-        messageFromCookie = HttpContext.Request.Cookies[IdentityRedirectManager.StatusCookieName];
+        var raw = HttpContext.Request.Cookies[IdentityRedirectManager.StatusCookieName];
 
-        if (messageFromCookie is not null)
+        if (raw is not null)
         {
+            (messageFromCookie, kindFromCookie) = StatusMessageCookie.Decode(raw);
             HttpContext.Response.Cookies.Delete(IdentityRedirectManager.StatusCookieName);
         }
     }

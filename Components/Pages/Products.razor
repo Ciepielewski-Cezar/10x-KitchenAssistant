@@ -18,11 +18,9 @@
 <EditForm Model="form" OnValidSubmit="AddAsync" class="mb-4">
     <DataAnnotationsValidator />
 
-    <div class="mb-3">
-        <label for="product-name" class="form-label">Nazwa</label>
+    <FormField Id="product-name" Label="Nazwa" For="() => form.Name">
         <InputText id="product-name" class="form-control" @bind-Value="form.Name" @ref="nameInput" />
-        <ValidationMessage For="() => form.Name" />
-    </div>
+    </FormField>
 
     <fieldset class="mb-3">
         <legend class="form-label fs-6">Kategoria</legend>
@@ -39,20 +37,15 @@
         <ValidationMessage For="() => form.Category" />
     </fieldset>
 
-    <div class="mb-3">
-        <label for="product-quantity" class="form-label">Ilość (opcjonalnie)</label>
+    <FormField Id="product-quantity" Label="Ilość (opcjonalnie)" For="() => form.Quantity">
         <InputText id="product-quantity" class="form-control" @bind-Value="form.Quantity" />
-        <ValidationMessage For="() => form.Quantity" />
-    </div>
+    </FormField>
 
-    <div class="mb-3">
-        <label for="product-expires-on" class="form-label">Data ważności (opcjonalnie)</label>
+    <FormField Id="product-expires-on" Label="Data ważności (opcjonalnie)" For="() => form.ExpiresOn">
         <InputDate id="product-expires-on" class="form-control" @bind-Value="form.ExpiresOn" ParsingErrorMessage="Podaj poprawną datę." />
-        <ValidationMessage For="() => form.ExpiresOn" />
-    </div>
+    </FormField>
 
-    <div class="mb-3">
-        <label for="product-location" class="form-label">Miejsce przechowywania (opcjonalnie)</label>
+    <FormField Id="product-location" Label="Miejsce przechowywania (opcjonalnie)" For="() => form.StorageLocation">
         <InputSelect id="product-location" class="form-select" @bind-Value="form.StorageLocation" ParsingErrorMessage="Wybierz poprawne miejsce przechowywania.">
             <option value="">—</option>
             @foreach (var location in Enum.GetValues<StorageLocation>())
@@ -60,8 +53,7 @@
                 <option value="@location">@ProductLabels.For(location)</option>
             }
         </InputSelect>
-        <ValidationMessage For="() => form.StorageLocation" />
-    </div>
+    </FormField>
 
     <button type="submit" class="btn btn-primary" disabled="@saving">Dodaj</button>
 
