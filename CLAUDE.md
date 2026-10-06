@@ -37,7 +37,10 @@ The code was generated from `dotnet new blazor --auth Individual`. The template'
   ```bash
   grep -nE '#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|oklch\(|:\s*(white|black)\b|navbar-(dark|light)' <changed .razor/.razor.css files>
   ```
-- **Shared components.** There is no shared UI component folder yet; pages build primitives inline from Bootstrap classes. When the same markup appears in a second page (badge, card, alert with action, empty state, form field), extract a Razor component rather than copying it. The candidates are listed in `context/changes/recipes-ui/research.md` §5.
+- **Shared components.** Shared UI components live in `Components/Ui/` (namespace `KitchenAssistant.Components.Ui`, imported globally), so check there before creating one. When the same markup appears in a second page (badge, card, alert with action, empty state), extract a Razor component rather than copying it. The remaining candidates are listed in `context/changes/recipes-ui/research.md` §5.
+  - **Form fields use `FormField`** (label above the input), not `form-floating`. The Account pages still on floating labels are legacy.
+  - **Status messages carry an explicit kind.** New `StatusMessage` and `RedirectTo…WithStatus` callers pass a `StatusKind` (`Components/Account/StatusKind.cs`), never rely on an "Error" text prefix.
+  - **States are proved on `/dev/ui`**, a Development-only kitchen sink (`Components/Pages/DevUi.razor`). Add every new shared component to it.
 - Bootstrap's JS bundle is not loaded (`Components/App.razor`). Build interactive pieces such as collapse, modal or dropdown with Blazor state or native `<details>`/`<dialog>`, not with `data-bs-*` attributes.
 
 ## Commands

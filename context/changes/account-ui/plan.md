@@ -468,34 +468,34 @@ No database change. `AspNetUsers.PhoneNumber` stays, unused. Status cookies writ
 
 #### Automated
 
-- [x] 3.1 `dotnet build` succeeds
-- [x] 3.2 `dotnet test` passes
-- [x] 3.3 Hardcoded-value scan on the four view files returns 0 hits
-- [x] 3.4 No `PhoneNumber`, `form-floating`, English layout heading, Two-factor or Passkeys strings left in the view files
-- [x] 3.5 `App.razor` declares `lang="pl"`
+- [x] 3.1 `dotnet build` succeeds — a584a1b
+- [x] 3.2 `dotnet test` passes — a584a1b
+- [x] 3.3 Hardcoded-value scan on the four view files returns 0 hits — a584a1b
+- [x] 3.4 No `PhoneNumber`, `form-floating`, English layout heading, Two-factor or Passkeys strings left in the view files — a584a1b
+- [x] 3.5 `App.razor` declares `lang="pl"` — a584a1b
 
 #### Manual
 
-- [x] 3.6 `/Account/Manage` at desktop shows h1 "Moje konto", menu with Profil active, h2 "Profil" and the read-only E-mail field, all in Polish
-- [x] 3.7 At 375 px the three pills sit in one row above the content
-- [x] 3.8 Tab order Profil → Hasło → Dane osobowe, each with the green focus ring
-- [x] 3.9 Menu is exposed as navigation "Ustawienia konta"
-- [x] 3.10 Email, TwoFactorAuthentication and Passkeys routes still load by URL
-- [x] 3.11 Hasło and Dane osobowe open under the new layout without a layout break
+- [x] 3.6 `/Account/Manage` at desktop shows h1 "Moje konto", menu with Profil active, h2 "Profil" and the read-only E-mail field, all in Polish — a584a1b
+- [x] 3.7 At 375 px the three pills sit in one row above the content — a584a1b
+- [x] 3.8 Tab order Profil → Hasło → Dane osobowe, each with the green focus ring — a584a1b
+- [x] 3.9 Menu is exposed as navigation "Ustawienia konta" — a584a1b
+- [x] 3.10 Email, TwoFactorAuthentication and Passkeys routes still load by URL — a584a1b
+- [x] 3.11 Hasło and Dane osobowe open under the new layout without a layout break — a584a1b
 
 ### Phase 4: States, visual gate and guard
 
 #### Automated
 
-- [ ] 4.1 `dotnet build` succeeds
-- [ ] 4.2 `dotnet test` passes
-- [ ] 4.3 Hardcoded-value scan on every `.razor` file touched by this change returns 0 hits
-- [ ] 4.4 CLAUDE.md names `Components/Ui` and `StatusKind` above the 10x-cli marker
+- [x] 4.1 `dotnet build` succeeds
+- [x] 4.2 `dotnet test` passes
+- [x] 4.3 Hardcoded-value scan on every `.razor` file touched by this change returns 0 hits
+- [x] 4.4 CLAUDE.md names `Components/Ui` and `StatusKind` above the 10x-cli marker
 
 #### Manual
 
-- [ ] 4.5 `/dev/ui` at desktop and 375 px shows default, hover, focus-visible, disabled and error cells
-- [ ] 4.6 Empty and loading recorded as N/A with reasons
-- [ ] 4.7 `/Account/Manage` and `/products` screenshots at both widths show no regression
-- [ ] 4.8 `/dev/ui` returns not-found in Production
-- [ ] 4.9 7-state matrix, deferred charges and screenshot names recorded in the change folder
+- [x] 4.5 `/dev/ui` at desktop and 375 px shows default, hover, focus-visible, disabled and error cells
+- [x] 4.6 Empty and loading recorded as N/A with reasons
+- [x] 4.7 `/Account/Manage` and `/products` screenshots at both widths show no regression
+- [x] 4.8 `/dev/ui` returns not-found in Production
+- [x] 4.9 7-state matrix, deferred charges and screenshot names recorded in the change folder

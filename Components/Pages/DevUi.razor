@@ -1,0 +1,100 @@
+@page "/dev/ui"
+
+@using System.ComponentModel.DataAnnotations
+@using KitchenAssistant.Components.Account
+@using KitchenAssistant.Components.Account.Shared
+
+@inject IWebHostEnvironment Environment
+@inject NavigationManager NavigationManager
+
+@if (isDevelopment)
+{
+    <PageTitle>Dev UI</PageTitle>
+
+    <h1>Dev UI</h1>
+    <p class="text-body-secondary">Development-only kitchen sink: every shared component in every state.</p>
+
+    <section class="mb-4">
+        <h2>FormField: default</h2>
+        <FormField TValue="string" Id="dev-default" Label="Nazwa">
+            <input id="dev-default" type="text" class="form-control" value="Marchewka" />
+        </FormField>
+    </section>
+
+    <section class="mb-4">
+        <h2>FormField: read-only</h2>
+        <FormField TValue="string" Id="dev-readonly" Label="E-mail">
+            <input id="dev-readonly" type="email" class="form-control-plaintext" value="jan@example.com" readonly />
+        </FormField>
+    </section>
+
+    <section class="mb-4">
+        <h2>FormField: disabled</h2>
+        <FormField TValue="string" Id="dev-disabled" Label="Nazwa">
+            <input id="dev-disabled" type="text" class="form-control" value="Marchewka" disabled />
+        </FormField>
+    </section>
+
+    <section class="mb-4">
+        <h2>FormField: error</h2>
+        <EditForm EditContext="errorContext">
+            <FormField Id="dev-error" Label="Nazwa" For="() => errorModel.Name">
+                <InputText id="dev-error" class="form-control" @bind-Value="errorModel.Name" />
+            </FormField>
+        </EditForm>
+    </section>
+
+    <section class="mb-4">
+        <h2>Buttons</h2>
+        <button type="button" class="btn btn-primary me-2">Dodaj</button>
+        <button type="button" class="btn btn-primary" disabled>Dodaj</button>
+    </section>
+
+    <section class="mb-4">
+        <h2>StatusMessage</h2>
+        <StatusMessage Kind="StatusKind.Success" Message="Twój profil został zaktualizowany." />
+        <StatusMessage Kind="StatusKind.Error" Message="Nie udało się zapisać zmian. Spróbuj ponownie." />
+        <StatusMessage Message="Error: komunikat bez rodzaju powinien być czerwony." />
+    </section>
+
+    <section class="mb-4">
+        <h2>ManageNavMenu</h2>
+        <ManageNavMenu />
+    </section>
+}
+
+@code {
+    private bool isDevelopment;
+    private readonly ErrorModel errorModel = new();
+    private EditContext errorContext = default!;
+
+    protected override void OnInitialized()
+    {
+        if (!Environment.IsDevelopment())
+        {
+            NavigationManager.NotFound();
+            return;
+        }
+
+        isDevelopment = true;
+        errorContext = new EditContext(errorModel);
+
+        // Validated by hand: no DataAnnotationsValidator is attached yet at this point, so Validate() would be a no-op.
+        var store = new ValidationMessageStore(errorContext);
+        var results = new List<ValidationResult>();
+        Validator.TryValidateObject(errorModel, new ValidationContext(errorModel), results, validateAllProperties: true);
+        foreach (var result in results)
+        {
+            foreach (var member in result.MemberNames)
+            {
+                store.Add(errorContext.Field(member), result.ErrorMessage ?? string.Empty);
+            }
+        }
+    }
+
+    private sealed class ErrorModel
+    {
+        [Required(ErrorMessage = "Nazwa jest wymagana.")]
+        public string? Name { get; set; }
+    }
+}
