@@ -487,15 +487,15 @@ No database change. `AspNetUsers.PhoneNumber` stays, unused. Status cookies writ
 
 #### Automated
 
-- [x] 4.1 `dotnet build` succeeds
-- [x] 4.2 `dotnet test` passes
-- [x] 4.3 Hardcoded-value scan on every `.razor` file touched by this change returns 0 hits
-- [x] 4.4 CLAUDE.md names `Components/Ui` and `StatusKind` above the 10x-cli marker
+- [x] 4.1 `dotnet build` succeeds — abb3a81
+- [x] 4.2 `dotnet test` passes — abb3a81
+- [x] 4.3 Hardcoded-value scan on every `.razor` file touched by this change returns 0 hits — abb3a81
+- [x] 4.4 CLAUDE.md names `Components/Ui` and `StatusKind` above the 10x-cli marker — abb3a81
 
 #### Manual
 
-- [x] 4.5 `/dev/ui` at desktop and 375 px shows default, hover, focus-visible, disabled and error cells
-- [x] 4.6 Empty and loading recorded as N/A with reasons
-- [x] 4.7 `/Account/Manage` and `/products` screenshots at both widths show no regression
-- [x] 4.8 `/dev/ui` returns not-found in Production
-- [x] 4.9 7-state matrix, deferred charges and screenshot names recorded in the change folder
+- [x] 4.5 `/dev/ui` at desktop and 375 px shows default, hover, focus-visible, disabled and error cells — abb3a81
+- [x] 4.6 Empty and loading recorded as N/A with reasons — abb3a81
+- [x] 4.7 `/Account/Manage` and `/products` screenshots at both widths show no regression — abb3a81
+- [x] 4.8 `/dev/ui` returns not-found in Production — abb3a81
+- [x] 4.9 7-state matrix, deferred charges and screenshot names recorded in the change folder — abb3a81
