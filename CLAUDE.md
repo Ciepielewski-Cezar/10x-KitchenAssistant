@@ -25,6 +25,20 @@ The code was generated from `dotnet new blazor --auth Individual`. The template'
 - **Feature code.** Each feature's services, form models and labels live in a top-level feature folder with a matching namespace, e.g. `Pantry/` (`KitchenAssistant.Pantry`) holds `ProductService`. Pages call these services and never touch `ApplicationDbContext` directly. Don't give a feature folder the same name as a page class: a `Products` namespace would clash with `Components/Pages/Products.razor`.
 - **Deployment.** The target is Azure App Service, with GitHub Actions deploying on merge to `main`.
 
+## UI
+
+- **Bootstrap 5.3, not Tailwind.** Bootstrap is vendored as compiled CSS in `wwwroot/lib/bootstrap/` (no Sass, no Node). Don't add Tailwind, shadcn or a second CSS framework.
+- **Tokens live in `wwwroot/app.css`.** Its first block holds the theme under shadcn names (`--primary`, `--background`, `--muted-foreground`…), copied from `context/changes/recipes-ui/theme-source.css`. The blocks below map them onto Bootstrap's `--bs-*` variables and re-point components that Bootstrap compiles with literal colours (`.btn-primary`, `.btn-danger`, `.form-check-input:checked`…).
+  - To restyle, change a token value, not a component class. The `-rgb`, `-text-emphasis`, `-bg-subtle`, `-border-subtle`, link and button hover/active values are derived by hand (formulas in the comment above them), so recompute them whenever their source colour changes.
+  - Dark values are under `[data-bs-theme=dark]`, but nothing sets that attribute yet, so the app is light-only.
+- **No literal colours in views or `*.razor.css`.** Use Bootstrap's role classes (`btn-primary`, `text-bg-success`, `alert-danger`, `text-body-secondary`, `card`, `list-group`) or `var(--token)`. No hex, `rgb()`, named colours, `style="color:…"` or fixed-theme classes such as `navbar-dark`. A data-URI SVG, which can't read `var()`, is the only exception: put it in a per-theme variable in `app.css` (see `--sidebar-toggler-icon`), or use it as a `mask` with `background-color: currentColor` (see `.bi` in `NavMenu.razor.css`).
+- Before finishing a UI change, scan the touched files for literals (anything printed is a candidate for a token):
+  ```bash
+  grep -nE '#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(|oklch\(|:\s*(white|black)\b|navbar-(dark|light)' <changed .razor/.razor.css files>
+  ```
+- **Shared components.** There is no shared UI component folder yet; pages build primitives inline from Bootstrap classes. When the same markup appears in a second page (badge, card, alert with action, empty state, form field), extract a Razor component rather than copying it. The candidates are listed in `context/changes/recipes-ui/research.md` §5.
+- Bootstrap's JS bundle is not loaded (`Components/App.razor`). Build interactive pieces such as collapse, modal or dropdown with Blazor state or native `<details>`/`<dialog>`, not with `data-bs-*` attributes.
+
 ## Commands
 
 The target is .NET 10 (`net10.0`); `global.json` pins SDK 10.0.x. `dotnet-ef` 10.0.12 is a local tool in `dotnet-tools.json`, so run `dotnet tool restore` after cloning.

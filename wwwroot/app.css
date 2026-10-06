@@ -1,19 +1,287 @@
-html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+/*
+ * Design tokens. Values come from the shadcn/ui theme in context/changes/recipes-ui/theme-source.css
+ * (the user's index.css, 2026-10-06). The app does not use Tailwind: the theme's :root/.dark values
+ * are copied here under their shadcn names and mapped onto Bootstrap's --bs-* variables below.
+ * Views use Bootstrap classes and these variables, never colour literals.
+ */
+:root,
+[data-bs-theme=light] {
+    --background: #f3faff;
+    --foreground: #09131a;
+    --card: #ffffff;
+    --card-foreground: #09131a;
+    --popover: #ffffff;
+    --popover-foreground: #09131a;
+    --primary: #00a33d;
+    --primary-foreground: #f3faff;
+    --secondary: #e0edf8;
+    --secondary-foreground: #202a32;
+    --muted: #e0edf8;
+    --muted-foreground: #4c575f;
+    --accent: #28bc5e;
+    --accent-foreground: #f3faff;
+    --destructive: #f22a36;
+    --destructive-foreground: #f3faff;
+    --border: #d3e0ea;
+    --input: #d3e0ea;
+    --ring: #00a33d;
+    --chart-1: #00a33d;
+    --chart-2: #0083e0;
+    --chart-3: #f46800;
+    --chart-4: #a264f6;
+    --chart-5: #f83e54;
+    --sidebar: #f3faff;
+    --sidebar-foreground: #09131a;
+    --sidebar-primary: #00a33d;
+    --sidebar-primary-foreground: #f3faff;
+    --sidebar-accent: #28bc5e;
+    --sidebar-accent-foreground: #f3faff;
+    --sidebar-border: #d3e0ea;
+    --sidebar-ring: #00a33d;
+    --font-sans: Space Grotesk, ui-sans-serif, sans-serif, system-ui;
+    --font-serif: PT Serif, ui-serif, serif;
+    --font-mono: Space Mono, ui-monospace, monospace;
+    --radius: 0.75rem;
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+    /*
+     * Derived with Bootstrap's own Sass rules, because Bootstrap needs RGB channel lists and shade/tint
+     * variants that var() cannot compute. Recompute them when a colour above changes:
+     * text-emphasis = shade 60%, bg-subtle = tint 80%, border-subtle = tint 60%; links = primary shaded
+     * 20% (hover 40%) for 4.7:1 contrast on --background; button hover/active = button-variant().
+     */
+    --bs-primary-rgb: 0, 163, 61;
+    --bs-primary-text-emphasis: #004118;
+    --bs-primary-bg-subtle: #ccedd8;
+    --bs-primary-border-subtle: #99dab1;
+    --bs-success-rgb: 0, 163, 61;
+    --bs-success-text-emphasis: #004118;
+    --bs-success-bg-subtle: #ccedd8;
+    --bs-success-border-subtle: #99dab1;
+    --bs-danger-rgb: 242, 42, 54;
+    --bs-danger-text-emphasis: #611116;
+    --bs-danger-bg-subtle: #fcd4d7;
+    --bs-danger-border-subtle: #faaaaf;
+    --bs-secondary-rgb: 76, 87, 95;
+    --bs-secondary-text-emphasis: #1e2326;
+    --bs-secondary-bg-subtle: #dbdddf;
+    --bs-secondary-border-subtle: #b7bcbf;
+    --bs-body-color-rgb: 9, 19, 26;
+    --bs-body-bg-rgb: 243, 250, 255;
+    --bs-emphasis-color-rgb: 9, 19, 26;
+    --bs-secondary-color-rgb: 76, 87, 95;
+    --bs-secondary-bg-rgb: 224, 237, 248;
+    --bs-link-color: #008231;
+    --bs-link-color-rgb: 0, 130, 49;
+    --bs-link-hover-color: #006225;
+    --bs-link-hover-color-rgb: 0, 98, 37;
+    --primary-hover: #008b34;
+    --primary-hover-border: #008231;
+    --primary-active: #008231;
+    --primary-active-border: #007a2e;
+    --primary-focus-rgb: 36, 176, 90;
+    --destructive-hover: #ce242e;
+    --destructive-hover-border: #c2222b;
+    --destructive-active: #c2222b;
+    --destructive-active-border: #b62029;
+    /* A data URI cannot read var(), so the stroke repeats --sidebar-foreground. */
+    --sidebar-toggler-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%2309131a' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
-a, .btn-link {
-    color: #006bb7;
+/* Dark values from the theme's .dark block. Not enabled yet: nothing sets data-bs-theme="dark". */
+[data-bs-theme=dark] {
+    --background: #02080e;
+    --foreground: #e9f0f5;
+    --card: #09131a;
+    --card-foreground: #e9f0f5;
+    --popover: #09131a;
+    --popover-foreground: #e9f0f5;
+    --primary: #2fbc5b;
+    --primary-foreground: #000408;
+    --secondary: #172128;
+    --secondary-foreground: #e9f0f5;
+    --muted: #172128;
+    --muted-foreground: #85919a;
+    --accent: #32c364;
+    --accent-foreground: #000408;
+    --destructive: #f22a36;
+    --destructive-foreground: #f3faff;
+    --border: #202a32;
+    --input: #202a32;
+    --ring: #2fbc5b;
+    --chart-1: #2fbc5b;
+    --chart-2: #319cfc;
+    --chart-3: #ff7f16;
+    --chart-4: #b478ff;
+    --chart-5: #ff5969;
+    --sidebar: #171717;
+    --sidebar-foreground: #fafafa;
+    --sidebar-primary: #1447e6;
+    --sidebar-primary-foreground: #fafafa;
+    --sidebar-accent: #262626;
+    --sidebar-accent-foreground: #fafafa;
+    --sidebar-border: #282828;
+    --sidebar-ring: #525252;
+    --radius: 0.625rem;
+    /* Dark derivations: text-emphasis = tint 40%, bg-subtle = shade 80%, border-subtle = shade 40%. */
+    --bs-primary-rgb: 47, 188, 91;
+    --bs-primary-text-emphasis: #82d79d;
+    --bs-primary-bg-subtle: #092612;
+    --bs-primary-border-subtle: #1c7137;
+    --bs-success-rgb: 47, 188, 91;
+    --bs-success-text-emphasis: #82d79d;
+    --bs-success-bg-subtle: #092612;
+    --bs-success-border-subtle: #1c7137;
+    --bs-danger-rgb: 242, 42, 54;
+    --bs-danger-text-emphasis: #f77f86;
+    --bs-danger-bg-subtle: #30080b;
+    --bs-danger-border-subtle: #911920;
+    --bs-secondary-rgb: 133, 145, 154;
+    --bs-secondary-text-emphasis: #b6bdc2;
+    --bs-secondary-bg-subtle: #1b1d1f;
+    --bs-secondary-border-subtle: #50575c;
+    --bs-body-color-rgb: 233, 240, 245;
+    --bs-body-bg-rgb: 2, 8, 14;
+    --bs-emphasis-color-rgb: 233, 240, 245;
+    --bs-secondary-color-rgb: 133, 145, 154;
+    --bs-secondary-bg-rgb: 23, 33, 40;
+    --bs-link-color: #2fbc5b;
+    --bs-link-color-rgb: 47, 188, 91;
+    --bs-link-hover-color: #59c97c;
+    --bs-link-hover-color-rgb: 89, 201, 124;
+    --primary-hover: #4ec674;
+    --primary-hover-border: #44c36b;
+    --primary-active: #59c97c;
+    --primary-active-border: #44c36b;
+    --primary-focus-rgb: 40, 160, 79;
+    --sidebar-toggler-icon: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%23fafafa' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
+/*
+ * Theme -> Bootstrap. Bootstrap's own :root and [data-bs-theme=dark] blocks have the same specificity
+ * and load first, so this block wins in both themes. Bootstrap roles with no theme counterpart
+ * (warning, info, light, dark) keep Bootstrap's values.
+ */
+:root,
+[data-bs-theme=light],
+[data-bs-theme=dark] {
+    --bs-primary: var(--primary);
+    --bs-success: var(--primary);
+    --bs-danger: var(--destructive);
+    /* Bootstrap's "secondary" is a solid neutral behind white text (text-bg-secondary), so it takes muted-foreground. */
+    --bs-secondary: var(--muted-foreground);
+    --bs-body-bg: var(--background);
+    --bs-body-color: var(--foreground);
+    --bs-emphasis-color: var(--foreground);
+    --bs-secondary-color: var(--muted-foreground);
+    --bs-secondary-bg: var(--muted);
+    --bs-tertiary-bg: var(--secondary);
+    --bs-border-color: var(--border);
+    --bs-border-color-translucent: var(--border);
+    --bs-focus-ring-color: color-mix(in srgb, var(--ring) 50%, transparent);
+    --bs-form-valid-color: var(--primary);
+    --bs-form-valid-border-color: var(--primary);
+    --bs-form-invalid-color: var(--destructive);
+    --bs-form-invalid-border-color: var(--destructive);
+    --bs-font-sans-serif: var(--font-sans);
+    --bs-font-monospace: var(--font-mono);
+    /* shadcn radius scale: sm = radius - 4px, md = radius - 2px, lg = radius, xl = radius + 4px. */
+    --bs-border-radius-sm: calc(var(--radius) - 4px);
+    --bs-border-radius: calc(var(--radius) - 2px);
+    --bs-border-radius-lg: var(--radius);
+    --bs-border-radius-xl: calc(var(--radius) + 4px);
+    --bs-box-shadow-sm: var(--shadow-sm);
+    --bs-box-shadow: var(--shadow-md);
+    --bs-box-shadow-lg: var(--shadow-lg);
+}
+
+/* Bootstrap compiles these components with literal colours, so they are re-pointed at the tokens. */
 .btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    --bs-btn-color: var(--primary-foreground);
+    --bs-btn-bg: var(--primary);
+    --bs-btn-border-color: var(--primary);
+    --bs-btn-hover-color: var(--primary-foreground);
+    --bs-btn-hover-bg: var(--primary-hover);
+    --bs-btn-hover-border-color: var(--primary-hover-border);
+    --bs-btn-focus-shadow-rgb: var(--primary-focus-rgb);
+    --bs-btn-active-color: var(--primary-foreground);
+    --bs-btn-active-bg: var(--primary-active);
+    --bs-btn-active-border-color: var(--primary-active-border);
+    --bs-btn-disabled-color: var(--primary-foreground);
+    --bs-btn-disabled-bg: var(--primary);
+    --bs-btn-disabled-border-color: var(--primary);
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+.btn-danger {
+    --bs-btn-color: var(--destructive-foreground);
+    --bs-btn-bg: var(--destructive);
+    --bs-btn-border-color: var(--destructive);
+    --bs-btn-hover-color: var(--destructive-foreground);
+    --bs-btn-hover-bg: var(--destructive-hover);
+    --bs-btn-hover-border-color: var(--destructive-hover-border);
+    --bs-btn-focus-shadow-rgb: var(--bs-danger-rgb);
+    --bs-btn-active-color: var(--destructive-foreground);
+    --bs-btn-active-bg: var(--destructive-active);
+    --bs-btn-active-border-color: var(--destructive-active-border);
+    --bs-btn-disabled-color: var(--destructive-foreground);
+    --bs-btn-disabled-bg: var(--destructive);
+    --bs-btn-disabled-border-color: var(--destructive);
+}
+
+.btn-outline-danger {
+    --bs-btn-color: var(--destructive);
+    --bs-btn-border-color: var(--destructive);
+    --bs-btn-hover-color: var(--destructive-foreground);
+    --bs-btn-hover-bg: var(--destructive);
+    --bs-btn-hover-border-color: var(--destructive);
+    --bs-btn-focus-shadow-rgb: var(--bs-danger-rgb);
+    --bs-btn-active-color: var(--destructive-foreground);
+    --bs-btn-active-bg: var(--destructive);
+    --bs-btn-active-border-color: var(--destructive);
+    --bs-btn-disabled-color: var(--destructive);
+    --bs-btn-disabled-border-color: var(--destructive);
+}
+
+.btn-link {
+    --bs-btn-disabled-color: var(--muted-foreground);
+    --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+}
+
+.nav-pills {
+    --bs-nav-pills-link-active-color: var(--primary-foreground);
+    --bs-nav-pills-link-active-bg: var(--primary);
+}
+
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.card {
+    --bs-card-bg: var(--card);
+    --bs-card-color: var(--card-foreground);
+    --bs-card-border-radius: var(--bs-border-radius-xl);
+    --bs-card-inner-border-radius: calc(var(--bs-border-radius-xl) - var(--bs-border-width));
+    box-shadow: var(--bs-box-shadow-sm);
+}
+
+.list-group {
+    --bs-list-group-bg: var(--card);
+    --bs-list-group-color: var(--card-foreground);
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-select:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem var(--background), 0 0 0 0.25rem var(--bs-focus-ring-color);
+}
+
+.form-control:focus, .form-select:focus, .form-check-input:focus {
+    border-color: var(--ring);
 }
 
 .content {
@@ -25,21 +293,21 @@ h1:focus {
 }
 
 .valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
+    outline: 1px solid var(--bs-form-valid-color);
 }
 
 .invalid {
-    outline: 1px solid #e50000;
+    outline: 1px solid var(--bs-form-invalid-color);
 }
 
 .validation-message {
-    color: #e50000;
+    color: var(--bs-form-invalid-color);
 }
 
 .blazor-error-boundary {
-    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, #b32121;
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, var(--destructive);
     padding: 1rem 1rem 1rem 3.7rem;
-    color: white;
+    color: var(--destructive-foreground);
 }
 
     .blazor-error-boundary::after {
@@ -47,7 +315,7 @@ h1:focus {
     }
 
 .darker-border-checkbox.form-check-input {
-    border-color: #929292;
+    border-color: var(--muted-foreground);
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
