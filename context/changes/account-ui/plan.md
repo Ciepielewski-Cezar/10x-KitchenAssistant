@@ -439,30 +439,30 @@ No database change. `AspNetUsers.PhoneNumber` stays, unused. Status cookies writ
 
 #### Automated
 
-- [x] 1.1 `dotnet build` succeeds
-- [x] 1.2 Hardcoded-value scan on `wwwroot/app.css` shows no new literal outside the existing derived-value block
+- [x] 1.1 `dotnet build` succeeds — 30c03c2
+- [x] 1.2 Hardcoded-value scan on `wwwroot/app.css` shows no new literal outside the existing derived-value block — 30c03c2
 
 #### Manual
 
-- [x] 1.3 Menu pill focus shows the green ring, matching inputs on `/products`
-- [x] 1.4 Layout `hr` is drawn in the `--border` colour
-- [x] 1.5 No visual regression on a page with a disabled floating field
+- [x] 1.3 Menu pill focus shows the green ring, matching inputs on `/products` — 30c03c2
+- [x] 1.4 Layout `hr` is drawn in the `--border` colour — 30c03c2
+- [x] 1.5 No visual regression on a page with a disabled floating field — 30c03c2
 
 ### Phase 2: Shared contract — `FormField` and `StatusKind` (C2, C3)
 
 #### Automated
 
-- [ ] 2.1 `dotnet build` succeeds
-- [ ] 2.2 `dotnet test` passes, including `StatusMessageCookieTests`
-- [ ] 2.3 `StatusMessage.razor` no longer contains `StartsWith("Error")`
-- [ ] 2.4 Hardcoded-value scan on `FormField.razor` and `Products.razor` returns 0 hits
+- [x] 2.1 `dotnet build` succeeds
+- [x] 2.2 `dotnet test` passes, including `StatusMessageCookieTests`
+- [x] 2.3 `StatusMessage.razor` no longer contains `StartsWith("Error")`
+- [x] 2.4 Hardcoded-value scan on `FormField.razor` and `Products.razor` returns 0 hits
 
 #### Manual
 
-- [ ] 2.5 `/products` at desktop looks the same as before
-- [ ] 2.6 Empty-name submit on `/products` still shows the validation message and invalid outline
-- [ ] 2.7 After adding a product, focus returns to Nazwa
-- [ ] 2.8 An English Account error (wrong current password) still renders `alert-danger`
+- [x] 2.5 `/products` at desktop looks the same as before
+- [x] 2.6 Empty-name submit on `/products` still shows the validation message and invalid outline
+- [x] 2.7 After adding a product, focus returns to Nazwa
+- [x] 2.8 An English Account error (wrong current password) still renders `alert-danger`
 
 ### Phase 3: The Profile view (C4, C5)
 
