@@ -54,6 +54,14 @@ public sealed class RecipeServiceTests : IDisposable
         new AiRecipeResponse([new AiRecipe("Omlet", "Szybki.", 10, ingredients, ["Usmaż."])]),
         RecipeResponseParser.JsonOptions);
 
+    private static string JsonOf(params AiRecipe[] recipes) =>
+        JsonSerializer.Serialize(new AiRecipeResponse(recipes), RecipeResponseParser.JsonOptions);
+
+    private static AiRecipe Recipe(string title, params AiIngredient[] ingredients) => new(title, null, 10, ingredients, ["Usmaż."]);
+
+    private static AiIngredient[] Missing(int count) =>
+        [.. new[] { "śmietana", "szczypiorek", "ser żółty" }.Take(count).Select(name => new AiIngredient(null, name, null))];
+
     [Fact]
     public async Task No_products_returns_NoProducts_without_calling_the_generator()
     {
@@ -147,6 +155,50 @@ public sealed class RecipeServiceTests : IDisposable
             new[] { IngredientStatus.Owned, IngredientStatus.Missing, IngredientStatus.AlwaysAtHome },
             proposal.Ingredients.Select(i => i.Status));
         Assert.Null(proposal.Ingredients[1].ProductId);
+    }
+
+    [Fact]
+    public async Task Proposals_are_ranked_and_the_ones_over_the_missing_limit_are_counted_as_hidden()
+    {
+        var eggs = await AddAsync(UserA, "jajka");
+        var generator = new StubGenerator((_, _) => Task.FromResult(JsonOf(
+            Recipe("Dwa braki", [new AiIngredient(eggs, "jajka", null), .. Missing(2)]),
+            Recipe("Trzy braki", [new AiIngredient(eggs, "jajka", null), .. Missing(3)]),
+            Recipe("Bez braków", new AiIngredient(eggs, "jajka", null), new AiIngredient(null, "sól", null)))));
+
+        var result = await Service(generator).GenerateAsync(UserA);
+
+        Assert.Equal(RecipeGenerationStatus.Succeeded, result.Status);
+        Assert.Equal(new[] { "Bez braków", "Dwa braki" }, result.Proposals.Select(p => p.Title));
+        Assert.Equal(1, result.HiddenCount);
+    }
+
+    [Fact]
+    public async Task All_proposals_over_the_missing_limit_is_NoneWithinMissingLimit()
+    {
+        var eggs = await AddAsync(UserA, "jajka");
+        var generator = new StubGenerator((_, _) => Task.FromResult(JsonOf(
+            Recipe("Trzy braki", [new AiIngredient(eggs, "jajka", null), .. Missing(3)]),
+            Recipe("Same braki", Missing(3)))));
+
+        var result = await Service(generator).GenerateAsync(UserA);
+
+        Assert.Equal(RecipeGenerationStatus.NoneWithinMissingLimit, result.Status);
+        Assert.Empty(result.Proposals);
+        Assert.Equal(2, result.HiddenCount);
+    }
+
+    [Fact]
+    public async Task Only_always_at_home_recipes_are_Failed_not_hidden()
+    {
+        await AddAsync(UserA, "jajka");
+        var generator = new StubGenerator((_, _) => Task.FromResult(JsonOf(
+            Recipe("Woda z solą", new AiIngredient(null, "woda", null), new AiIngredient(null, "sól", null)))));
+
+        var result = await Service(generator).GenerateAsync(UserA);
+
+        Assert.Equal(RecipeGenerationStatus.Failed, result.Status);
+        Assert.Equal(0, result.HiddenCount);
     }
 
     public static TheoryData<Exception> GeneratorFailures() => new()

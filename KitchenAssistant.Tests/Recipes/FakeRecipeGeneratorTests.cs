@@ -31,11 +31,24 @@ public class FakeRecipeGeneratorTests
 
         var proposals = RecipeClassifier.Classify(recipes, new ProductList(Items[..2], Items[2..]));
 
-        Assert.Equal(3, proposals.Count);
+        Assert.Equal(4, proposals.Count);
         Assert.All(proposals[0].Ingredients, i => Assert.NotEqual(IngredientStatus.Missing, i.Status));
         Assert.Contains(proposals[0].Ingredients, i => i.Status == IngredientStatus.AlwaysAtHome);
         Assert.Single(proposals[1].Ingredients, i => i.Status == IngredientStatus.Missing);
         Assert.Contains(proposals[2].Ingredients, i => i.Status == IngredientStatus.Missing);
+        Assert.Equal(3, proposals[3].Score.MissingCount);
+    }
+
+    [Fact]
+    public async Task Ranking_hides_the_recipe_with_three_missing_ingredients()
+    {
+        var recipes = RecipeResponseParser.Parse(await GenerateAsync(Items));
+        var proposals = RecipeClassifier.Classify(recipes, new ProductList(Items[..2], Items[2..]));
+
+        var ranked = RecipeRanker.Rank(proposals);
+
+        Assert.Equal(1, ranked.HiddenCount);
+        Assert.Equal(proposals.Take(3), ranked.Proposals);
     }
 
     [Fact]

@@ -5,7 +5,8 @@ using KitchenAssistant.Pantry;
 namespace KitchenAssistant.Recipes;
 
 // The one prompt for recipe generation. Instructions are in English; the recipes come back in Polish.
-// Product names are user data, so they go only in the user message, never in the system prompt.
+// Product names are user data, so they go only in the user message, never in the system prompt. The limits come from
+// RecipeRanker, so the AI is told the same limit the app filters by.
 public static class RecipePrompt
 {
     public static readonly string System = $"""
@@ -14,9 +15,9 @@ public static class RecipePrompt
 
         Rules:
         - Write all recipe text (titles, summaries, ingredient names, amounts and steps) in Polish.
-        - Propose up to 5 different recipes that fit the meal parameters: meal type, maximum preparation time and
+        - Propose up to {RecipeRanker.MaxProposals} different recipes that fit the meal parameters: meal type, maximum preparation time and
           number of servings.
-        - Use only the listed products, plus at most 2 additional ingredients per recipe that are not on the list.
+        - Use only the listed products, plus at most {RecipeRanker.MaxMissing} additional ingredients per recipe that are not on the list.
           The always-at-home items below are not counted toward that limit.
         - For an ingredient taken from the product list, set "productId" to that product's id. For any other
           ingredient, set "productId" to null.
