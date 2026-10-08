@@ -1,0 +1,19 @@
+@namespace KitchenAssistant.Components.Ui
+@using KitchenAssistant.Recipes
+
+@* The score is computed in code (RecipeScore.From), never read from the AI. *@
+<div class="mb-3">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <span>@ScoreLabels.Owned(Score)</span>
+        <span class="badge @(Score.MissingCount == 0 ? "text-bg-success" : "text-bg-warning")">@ScoreLabels.Missing(Score.MissingCount)</span>
+    </div>
+    @if (Score.UseFirstCount > 0)
+    {
+        <p class="text-body-secondary mb-0">@ScoreLabels.UseFirst(Score.UseFirstCount)</p>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public RecipeScore Score { get; set; } = default!;
+}

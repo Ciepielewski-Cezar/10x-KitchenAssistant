@@ -44,8 +44,8 @@ Osoba gotująca dla siebie co najmniej raz w tygodniu traci czas na szukanie prz
 | F-01 | deployment              | (foundation) aplikacja działa na produkcji z alertami o błędach, a merge do `main` wdraża ją automatycznie        | —             | frontmatter `timeline_budget`, NFR ≤ 1 min | ready    |
 | S-01 | pantry-add-products     | po zalogowaniu widzi swoją prywatną listę produktów i dodaje produkt do jednej z dwóch kategorii                | —             | FR-001, FR-002, US-01, Access Control      | done        |
 | S-02 | first-recipe-generation | prosi o przepisy i w ciągu minuty dostaje kilka propozycji wygenerowanych przez AI z jego produktów             | S-01, lokalny klucz API dostawcy AI (krok L2 planu local-dev) | US-01, FR-005, NFR ≤ 1 min, NFR struktura  | done |
-| S-03 | recipe-ranking          | widzi propozycje uporządkowane według oceny i liczby braków, które liczy aplikacja                              | S-02          | FR-005, US-01, Business Logic              | proposed |
-| S-04 | recipe-details          | otwiera szczegóły wybranej propozycji i widzi pełny przepis w spójnej strukturze                                | S-02, S-07    | FR-006, NFR struktura, NFR ≤ 1 min         | proposed |
+| S-03 | recipe-ranking          | widzi propozycje uporządkowane według oceny i liczby braków, które liczy aplikacja                              | S-02          | FR-005, US-01, Business Logic              | done |
+| S-04 | recipe-details          | otwiera szczegóły wybranej propozycji i widzi pełny przepis w spójnej strukturze                                | S-02          | FR-006, NFR struktura, NFR ≤ 1 min         | proposed |
 | S-05 | meal-parameters         | wybiera parametry posiłku z małego zestawu, a propozycje je respektują                                          | S-02          | FR-004, US-01, Business Logic              | proposed |
 | S-06 | pantry-edit-remove      | zmienia albo usuwa produkt ze swojej listy                                                                      | S-01          | FR-003                                     | done |
 | S-07 | recipe-generation-spike | dostaje propozycje w ≤ 1 min na ustawieniach modelu potwierdzonych pomiarem 10 prawdziwych wywołań              | S-02, lokalny klucz API z limitem wydatków | NFR ≤ 1 min, FR-005, NFR struktura | ready |
@@ -58,8 +58,8 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 | ------ | ----------------------- | ---------------------- | ------------------------------------------------------------------------------------------------- |
 | A      | Wdrożenie produkcyjne   | `F-01`                 | Niezależny od funkcji; prowadzony równolegle od początku, bo głównym ryzykiem jest czas.          |
 | B      | Produkty użytkownika    | `S-01` → `S-06`        | `S-01` jest wejściem dla strumienia C; `S-06` można robić w dowolnym momencie po `S-01`.          |
-| C      | Pierwszy dowód i ocena  | `S-02` → `S-03` · `S-07` | Dołącza do strumienia B w `S-01`; ścieżka konieczna do MVP przy celu `speed`. `S-07` (pomiar wydzielony z `S-02`) jest niezależny od `S-03`. |
-| D      | Doprecyzowanie przepisu | `S-04` · `S-05`        | Dołącza do strumienia C w `S-02`; oba kawałki są od siebie i od `S-03` niezależne. `S-04` czeka na werdykt `S-07`. |
+| C      | Pierwszy dowód i ocena  | `S-02` → `S-03`        | Dołącza do strumienia B w `S-01`; ścieżka konieczna do MVP przy celu `speed`. |
+| D      | Doprecyzowanie przepisu | `S-04` · `S-05`        | Dołącza do strumienia C w `S-02`; oba kawałki są od siebie i od `S-03` niezależne. `S-04` zakłada jedno wywołanie AI z `S-02` (pomiar przeniesiony do następnego kamienia milowego, decyzja 2026-10-08). |
 
 ## Baseline
 
@@ -110,7 +110,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Prerequisites:** S-01, lokalny klucz API dostawcy AI (krok L2 planu local-dev)
 - **Parallel with:** F-01, S-06
 - **Blockers:** —
-- **Unknowns:** — (pytanie o mieszczenie się 5 przepisów w minucie przeniesione 2026-10-08 do `S-07` razem z pomiarem i `spike.md`)
+- **Unknowns:** — (pytanie o mieszczenie się 5 przepisów w minucie przeniesione 2026-10-08 do pomiaru `recipe-generation-spike` razem z `spike.md`; ten pomiar jest odłożony do następnego kamienia milowego, patrz *Parked*)
 - **Risk:** najbardziej ryzykowne założenie produktu (jakość i czas odpowiedzi AI) — stoi zaraz po `S-01`, żeby ewentualna zmiana podejścia wyszła, zanim powstanie reszta.
 - **Status:** done
 
@@ -124,19 +124,19 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** poprawność oceny to twarda reguła produktu (liczy ją aplikacja, nigdy AI); reguła jest już w pełni określona w PRD v2 (maks. 2 braki, odrzucanie ponad limit, lista „zawsze w domu”, ocena „Masz X z Y”), więc da się ją zweryfikować testami bez AI.
-- **Status:** proposed
+- **Status:** done
 
 ### S-04: Szczegóły przepisu
 
 - **Outcome:** użytkownik otwiera wybraną propozycję i widzi pełny przepis (składniki, kroki) w spójnej, czytelnej strukturze.
 - **Change ID:** recipe-details
 - **PRD refs:** FR-006, NFR struktura, NFR ≤ 1 min
-- **Prerequisites:** S-02, S-07 (werdykt pomiaru decyduje, czy potrzebne jest drugie wywołanie AI)
+- **Prerequisites:** S-02 (decyzja 2026-10-08: `S-04` nie czeka na pomiar generowania; zakłada obecny kształt — jedno wywołanie AI, pełny przepis już w propozycji)
 - **Parallel with:** F-01, S-03, S-05, S-06
 - **Blockers:** —
 - **Unknowns:**
   - Czy wygenerowane propozycje muszą przetrwać odświeżenie strony lub ponowne logowanie, czy wystarczy bieżąca sesja? (PRD wyłącza historię z MVP, co sugeruje sesję.) — Owner: user. Block: no.
-- **Risk:** niskie ryzyko; zależy od kształtu przepisu ustalonego w `S-02` i potwierdzonego w `S-07` — jeśli `S-07` każe rozdzielić generowanie na listę i pełny przepis, tu ląduje drugie wywołanie AI i wymóg ≤ 1 min.
+- **Risk:** niskie ryzyko; opiera się na kształcie przepisu z `S-02` (jedno wywołanie), który pomiar `recipe-generation-spike` potwierdzi dopiero w następnym kamieniu milowym. Jeśli pomiar każe rozdzielić generowanie na listę i pełny przepis, `S-04` wymaga przeróbki (drugie wywołanie AI i wymóg ≤ 1 min) — dlatego widok szczegółów powinien czytać gotowy `RecipeProposal`, bez własnego wywołania AI.
 - **Status:** proposed
 
 ### S-05: Parametry posiłku
@@ -163,20 +163,6 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Risk:** niskie ryzyko i brak zależnych kawałków; stoi za pierwszym dowodem, bo przy celu `speed` nie powinien go opóźniać, ale jest konieczny, bo stan produktów szybko się dezaktualizuje.
 - **Status:** done
 
-### S-07: Pomiar generowania i ustawienia modelu
-
-- **Outcome:** użytkownik dostaje propozycje w ≤ 1 min na ustawieniach modelu (`Recipes:Model` / `Recipes:Effort`) potwierdzonych pomiarem co najmniej 10 prawdziwych wywołań; czas, tokeny, jakość i poprawność identyfikatorów produktów są zapisane w `spike.md`.
-- **Change ID:** recipe-generation-spike
-- **PRD refs:** NFR ≤ 1 min, FR-005, NFR struktura
-- **Prerequisites:** S-02, lokalny klucz API dostawcy AI z limitem wydatków w konsoli
-- **Parallel with:** F-01, S-03, S-05, S-06
-- **Blockers:** —
-- **Unknowns:**
-  - Czy wygenerowanie 5 pełnych przepisów w jednym wywołaniu mieści się w minucie, czy trzeba to rozdzielić (lista propozycji, potem pełny przepis)? — Owner: team. Block: no.
-    - Wstępnie (2026-10-05): jedno wywołanie (Sonnet 5.5 / low) — 14,5 s i 5 propozycji w smoke teście na stosie produkcyjnym (`context/changes/recipe-generation-spike/spike.md`).
-- **Risk:** wydzielony 2026-10-08 z fazy 3 `S-02`, żeby `S-02` mogło się zamknąć; jedyny krok, który kosztuje (ok. 0,30 USD za 11 wywołań); werdykt decyduje o kształcie `S-04`, więc musi przyjść przed jego planowaniem i przed MVP (2026-10-22).
-- **Status:** ready
-
 ## Backlog Handoff
 
 | Roadmap ID | Change ID               | Suggested issue title                                              | Ready for `/10x-plan` | Notes |
@@ -184,11 +170,10 @@ Foundations below assume these are present and do NOT re-scaffold them.
 | F-01       | deployment              | Pierwsze wdrożenie produkcyjne (Azure + CI/CD)                     | yes                   | Plan już istnieje: `context/changes/deployment/deployment-plan.md` — kontynuuj od fazy 0. |
 | S-01       | pantry-add-products     | Prywatna lista produktów: dodawanie do dwóch kategorii             | yes                   | Run `/10x-plan pantry-add-products` |
 | S-02       | first-recipe-generation | Generowanie przepisów przez AI z produktów użytkownika             | no                    | Czeka na `S-01` i lokalny klucz API. |
-| S-03       | recipe-ranking          | Kolejność, ocena i liczba braków liczone przez aplikację           | no                    | Czeka na `S-02`. |
-| S-04       | recipe-details          | Szczegóły wygenerowanego przepisu                                  | no                    | Czeka na werdykt `S-07`. |
-| S-05       | meal-parameters         | Wybór parametrów posiłku przy prośbie o przepisy                   | no                    | Czeka na `S-02`. |
-| S-06       | pantry-edit-remove      | Zmiana i usuwanie produktu                                         | no                    | Czeka na `S-01`. |
-| S-07       | recipe-generation-spike | Pomiar 10 wywołań AI i zatwierdzenie ustawień modelu               | yes                   | Plan i runbook gotowe: `context/changes/recipe-generation-spike/` — potrzebny klucz dev. |
+| S-03       | recipe-ranking          | Kolejność, ocena i liczba braków liczone przez aplikację           | yes                   | Run `/10x-plan recipe-ranking` |
+| S-04       | recipe-details          | Szczegóły wygenerowanego przepisu                                  | yes                   | Run `/10x-plan recipe-details` (nie czeka na pomiar generowania, decyzja 2026-10-08). |
+| S-05       | meal-parameters         | Wybór parametrów posiłku przy prośbie o przepisy                   | yes                   | Run `/10x-plan meal-parameters` |
+| S-06       | pantry-edit-remove      | Zmiana i usuwanie produktu                                         | yes                   | Run `/10x-plan pantry-edit-remove` |
 
 ## Open Roadmap Questions
 
@@ -199,6 +184,7 @@ Brak otwartych pytań. Rozstrzygnięte 2026-09-30:
 
 ## Parked
 
+- **Pomiar generowania i ustawienia modelu (`recipe-generation-spike`, dawne `S-07`)** — Why parked: decyzja 2026-10-08 — przeniesiony z M-1 do następnego kamienia milowego, żeby nie blokował MVP; pierwszy kandydat na M-2. Plan, runbook i tabele pomiarów czekają w `context/changes/recipe-generation-spike/`. Do tego czasu NFR ≤ 1 min w M-1 opiera się na smoke teście (14,5 s, Sonnet 5.5 / low) i telemetrii czasu żądań z `F-01`. Wynik pomiaru może wymusić rozdzielenie generowania (lista, potem pełny przepis), a wtedy przeróbkę `S-04`.
 - **Zdjęcia i głosowe wprowadzanie produktów** — Why parked: PRD §Non-Goals (głos to też kryterium drugorzędne, nie MVP).
 - **Wspólne lodówki, zaproszenia i współdzielenie przestrzeni** — Why parked: PRD §Non-Goals; dane użytkownika są prywatne.
 - **Akcja „ugotuję to” i automatyczne uszczuplanie zapasów** — Why parked: PRD §Non-Goals.
@@ -214,4 +200,5 @@ Brak otwartych pytań. Rozstrzygnięte 2026-09-30:
 
 - **S-01: użytkownik po zalogowaniu widzi swoją prywatną listę produktów (tworzoną automatycznie, bez żadnej konfiguracji) i dodaje produkt do kategorii „zużyj w pierwszej kolejności” albo „w szafkach i zamrażalniku”.** — Archived 2026-10-03 → `context/archive/2026-10-03-pantry-add-products/`. Lesson: —.
 - **S-02: użytkownik z zapisanymi produktami prosi o przepisy i w ciągu minuty dostaje do 5 propozycji wygenerowanych przez AI, zbudowanych z jego produktów, każdą z listą składników i krokami przygotowania; składnik z zapasów jest powiązany z produktem użytkownika przez identyfikator (bez oceny i kolejności — te dochodzą w `S-03`).** — Archived 2026-10-08 → `context/archive/2026-10-03-first-recipe-generation/`. Lesson: —.
+- **S-03: użytkownik widzi propozycje uporządkowane: najpierw niewymagające zakupów i zużywające najwięcej produktów „zużyj w pierwszej kolejności”, potem te z 1–2 brakami; przy każdej widzi ocenę „Masz X z Y składników” i liczbę braków, które wylicza aplikacja, a nie AI; propozycje z więcej niż 2 brakami nie są pokazywane.** — Archived 2026-10-08 → `context/archive/2026-10-08-recipe-ranking/`. Lesson: —.
 - **S-06: użytkownik zmienia nazwę lub kategorię produktu albo usuwa produkt ze swojej listy.** — Archived 2026-10-08 → `context/archive/2026-10-08-pantry-edit-remove/`. Lesson: —.

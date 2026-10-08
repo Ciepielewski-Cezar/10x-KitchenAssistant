@@ -7,8 +7,6 @@ namespace KitchenAssistant.Recipes;
 // always at home or missing is decided here, against this user's own product list.
 public static class RecipeClassifier
 {
-    public const int MaxProposals = 5;
-
     // The closed „zawsze w domu” list (decided 2026-10-04). Matched by exact name, ignoring case; the prompt
     // renders this same list, so the AI is told the exact names to use.
     public static readonly IReadOnlyList<string> AlwaysAtHomeItems =
@@ -46,8 +44,8 @@ public static class RecipeClassifier
     internal static IReadOnlyList<RecipeProposal> Classify(IReadOnlyList<AiRecipe> recipes, ProductList products) =>
         Classify(recipes, products, out _);
 
-    // Also reports how the kept proposals' ingredients were decided, so the generation log shows how often the AI's
-    // product IDs were valid.
+    // Returns every usable proposal in the AI's order; filtering, ordering and the cap are RecipeRanker's job. Also reports
+    // how the usable proposals' ingredients were decided, so the generation log shows how often the AI's product IDs were valid.
     internal static IReadOnlyList<RecipeProposal> Classify(IReadOnlyList<AiRecipe> recipes, ProductList products, out ClassificationStats stats)
     {
         // UseFirst comes first, so a name owned in both sections resolves to the product to use up.
@@ -58,11 +56,6 @@ public static class RecipeClassifier
         var proposals = new List<RecipeProposal>();
         foreach (var recipe in recipes)
         {
-            if (proposals.Count == MaxProposals)
-            {
-                break;
-            }
-
             if (recipe is null || Classify(recipe, owned, byId, tally) is not { } proposal)
             {
                 continue;
@@ -71,7 +64,7 @@ public static class RecipeClassifier
             proposals.Add(proposal);
         }
 
-        // ID validity is measured over everything the AI returned, including dropped and over-the-cap recipes.
+        // ID validity is measured over everything the AI returned, including dropped recipes.
         var returnedIds = recipes
             .SelectMany(r => r?.Ingredients ?? [])
             .Select(i => i?.ProductId)
@@ -90,7 +83,8 @@ public static class RecipeClassifier
         return proposals;
     }
 
-    // A recipe without a title, ingredients or steps is dropped (null); only a kept recipe's ingredients are counted.
+    // A recipe without a title, ingredients or steps is dropped (null), and so is one made only of always-at-home items
+    // (nothing to score). Only a usable recipe's ingredients are counted.
     private static RecipeProposal? Classify(AiRecipe recipe, List<ProductListItem> owned, Dictionary<int, ProductListItem> byId, Tally tally)
     {
         var title = Clean(recipe.Title);
@@ -106,14 +100,20 @@ public static class RecipeClassifier
             return null;
         }
 
+        var ingredients = classified.Select(c => c.Ingredient!).ToList();
+        var score = RecipeScore.From(ingredients);
+        if (score.CountedCount == 0)
+        {
+            return null;
+        }
+
         foreach (var (source, ingredient) in classified)
         {
             tally.Add(source, ingredient!);
         }
 
         var prepTime = recipe.PrepTimeMinutes is > 0 ? recipe.PrepTimeMinutes : null;
-        var ingredients = classified.Select(c => c.Ingredient!).ToList();
-        return new RecipeProposal(title, Clean(recipe.Summary), prepTime, ingredients, steps);
+        return new RecipeProposal(title, Clean(recipe.Summary), prepTime, ingredients, steps, score);
     }
 
     // An ingredient with no usable name and no valid ID is dropped (null).
@@ -176,9 +176,9 @@ public static class RecipeClassifier
     }
 }
 
-// OwnedById … Missing count how the ingredients of the kept proposals were classified. ProductIds and UnknownIds count
-// every product ID in every recipe the AI returned (dropped and over-the-cap recipes included); UnknownIds are the ones
-// not on the user's list.
+// Proposals is the number of usable proposals, before RecipeRanker filters and caps them. OwnedById … Missing count how
+// the ingredients of the usable proposals were classified. ProductIds and UnknownIds count every product ID in every
+// recipe the AI returned (dropped recipes included); UnknownIds are the ones not on the user's list.
 internal sealed record ClassificationStats(
     int Recipes,
     int Proposals,
