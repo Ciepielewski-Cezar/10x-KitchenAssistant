@@ -1,10 +1,10 @@
 ---
 change_id: first-recipe-generation
 title: First recipe generation
-status: impl_reviewed
+status: archived
 created: 2026-10-03
-updated: 2026-10-05
-archived_at: null
+updated: 2026-10-08
+archived_at: 2026-10-08T16:10:19Z
 ---
 
 ## Notes

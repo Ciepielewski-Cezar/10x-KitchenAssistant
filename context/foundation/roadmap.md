@@ -43,7 +43,7 @@ Osoba gotująca dla siebie co najmniej raz w tygodniu traci czas na szukanie prz
 | ---- | ----------------------- | -------------------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------ | -------- |
 | F-01 | deployment              | (foundation) aplikacja działa na produkcji z alertami o błędach, a merge do `main` wdraża ją automatycznie        | —             | frontmatter `timeline_budget`, NFR ≤ 1 min | ready    |
 | S-01 | pantry-add-products     | po zalogowaniu widzi swoją prywatną listę produktów i dodaje produkt do jednej z dwóch kategorii                | —             | FR-001, FR-002, US-01, Access Control      | done        |
-| S-02 | first-recipe-generation | prosi o przepisy i w ciągu minuty dostaje kilka propozycji wygenerowanych przez AI z jego produktów             | S-01, lokalny klucz API dostawcy AI (krok L2 planu local-dev) | US-01, FR-005, NFR ≤ 1 min, NFR struktura  | in-progress |
+| S-02 | first-recipe-generation | prosi o przepisy i w ciągu minuty dostaje kilka propozycji wygenerowanych przez AI z jego produktów             | S-01, lokalny klucz API dostawcy AI (krok L2 planu local-dev) | US-01, FR-005, NFR ≤ 1 min, NFR struktura  | done |
 | S-03 | recipe-ranking          | widzi propozycje uporządkowane według oceny i liczby braków, które liczy aplikacja                              | S-02          | FR-005, US-01, Business Logic              | proposed |
 | S-04 | recipe-details          | otwiera szczegóły wybranej propozycji i widzi pełny przepis w spójnej strukturze                                | S-02, S-07    | FR-006, NFR struktura, NFR ≤ 1 min         | proposed |
 | S-05 | meal-parameters         | wybiera parametry posiłku z małego zestawu, a propozycje je respektują                                          | S-02          | FR-004, US-01, Business Logic              | proposed |
@@ -112,7 +112,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** — (pytanie o mieszczenie się 5 przepisów w minucie przeniesione 2026-10-08 do `S-07` razem z pomiarem i `spike.md`)
 - **Risk:** najbardziej ryzykowne założenie produktu (jakość i czas odpowiedzi AI) — stoi zaraz po `S-01`, żeby ewentualna zmiana podejścia wyszła, zanim powstanie reszta.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-03: Kolejność i ocena propozycji
 
@@ -213,3 +213,4 @@ Brak otwartych pytań. Rozstrzygnięte 2026-09-30:
 ## Done
 
 - **S-01: użytkownik po zalogowaniu widzi swoją prywatną listę produktów (tworzoną automatycznie, bez żadnej konfiguracji) i dodaje produkt do kategorii „zużyj w pierwszej kolejności” albo „w szafkach i zamrażalniku”.** — Archived 2026-10-03 → `context/archive/2026-10-03-pantry-add-products/`. Lesson: —.
+- **S-02: użytkownik z zapisanymi produktami prosi o przepisy i w ciągu minuty dostaje do 5 propozycji wygenerowanych przez AI, zbudowanych z jego produktów, każdą z listą składników i krokami przygotowania; składnik z zapasów jest powiązany z produktem użytkownika przez identyfikator (bez oceny i kolejności — te dochodzą w `S-03`).** — Archived 2026-10-08 → `context/archive/2026-10-03-first-recipe-generation/`. Lesson: —.
