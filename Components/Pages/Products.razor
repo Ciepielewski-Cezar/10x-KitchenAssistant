@@ -7,6 +7,7 @@
 @using KitchenAssistant.Pantry
 
 @attribute [Authorize]
+@implements IDisposable
 
 @inject ProductService ProductService
 @inject ILogger<Products> Logger
@@ -18,42 +19,7 @@
 <EditForm Model="form" OnValidSubmit="AddAsync" class="mb-4">
     <DataAnnotationsValidator />
 
-    <FormField Id="product-name" Label="Nazwa" For="() => form.Name">
-        <InputText id="product-name" class="form-control" @bind-Value="form.Name" @ref="nameInput" />
-    </FormField>
-
-    <fieldset class="mb-3">
-        <legend class="form-label fs-6">Kategoria</legend>
-        <InputRadioGroup Name="product-category" @bind-Value="form.Category">
-            <div class="form-check">
-                <InputRadio id="category-use-first" class="form-check-input" Value="@((ProductCategory?)ProductCategory.UseFirst)" />
-                <label for="category-use-first" class="form-check-label">@ProductLabels.For(ProductCategory.UseFirst)</label>
-            </div>
-            <div class="form-check">
-                <InputRadio id="category-stored" class="form-check-input" Value="@((ProductCategory?)ProductCategory.Stored)" />
-                <label for="category-stored" class="form-check-label">@ProductLabels.For(ProductCategory.Stored)</label>
-            </div>
-        </InputRadioGroup>
-        <ValidationMessage For="() => form.Category" />
-    </fieldset>
-
-    <FormField Id="product-quantity" Label="Ilość (opcjonalnie)" For="() => form.Quantity">
-        <InputText id="product-quantity" class="form-control" @bind-Value="form.Quantity" />
-    </FormField>
-
-    <FormField Id="product-expires-on" Label="Data ważności (opcjonalnie)" For="() => form.ExpiresOn">
-        <InputDate id="product-expires-on" class="form-control" @bind-Value="form.ExpiresOn" ParsingErrorMessage="Podaj poprawną datę." />
-    </FormField>
-
-    <FormField Id="product-location" Label="Miejsce przechowywania (opcjonalnie)" For="() => form.StorageLocation">
-        <InputSelect id="product-location" class="form-select" @bind-Value="form.StorageLocation" ParsingErrorMessage="Wybierz poprawne miejsce przechowywania.">
-            <option value="">—</option>
-            @foreach (var location in Enum.GetValues<StorageLocation>())
-            {
-                <option value="@location">@ProductLabels.For(location)</option>
-            }
-        </InputSelect>
-    </FormField>
+    <ProductFields Form="form" IdPrefix="product" @ref="addFields" />
 
     <button type="submit" class="btn btn-primary" disabled="@saving">Dodaj</button>
 
@@ -84,14 +50,33 @@ else if (products is not null)
     [CascadingParameter]
     private Task<AuthenticationState>? AuthenticationStateTask { get; set; }
 
+    // Cancelled when the user leaves the page, so in-flight calls stop with it.
+    private readonly CancellationTokenSource cts = new();
     private ProductForm form = new();
     private ProductList? products;
-    private InputText? nameInput;
+    private int loadVersion;
+    private ProductFields? addFields;
     private string? userId;
     private string? errorMessage;
     private bool loadFailed;
     private bool saving;
     private bool focusName;
+
+    // Row state: at most one row is being edited or confirming a delete at a time.
+    private int? editingId;
+    private ProductForm? editForm;
+    private ProductFields? editFields;
+    private int? confirmingDeleteId;
+    private string? rowErrorMessage;
+    private bool savingEdit;
+    private bool deleting;
+    private bool focusEditName;
+
+    // Where keyboard focus goes once a row action ends, instead of dropping to <body>.
+    private readonly Dictionary<int, ElementReference> editButtons = new();
+    private ElementReference confirmCancelButton;
+    private bool focusConfirmCancel;
+    private int? focusEditButtonFor;
 
     private RenderFragment ProductSection(IReadOnlyList<ProductListItem> items) => __builder =>
     {
@@ -104,23 +89,67 @@ else if (products is not null)
             <ul class="list-group">
                 @foreach (var item in items)
                 {
-                    <li class="list-group-item @(item.IsExpiryDue ? "list-group-item-warning" : null)">
-                        <strong>@item.Name</strong>
-                        @if (item.Quantity is not null)
+                    <li @key="item.Id" class="list-group-item @(item.IsExpiryDue ? "list-group-item-warning" : null)">
+                        @if (editingId == item.Id && editForm is not null)
                         {
-                            <span class="ms-2">@item.Quantity</span>
+                            <EditForm Model="editForm" OnValidSubmit="SaveEditAsync">
+                                <DataAnnotationsValidator />
+
+                                <ProductFields Form="editForm" IdPrefix="@($"edit-{item.Id}")" @ref="editFields" />
+
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="submit" class="btn btn-sm btn-primary" disabled="@savingEdit">Zapisz</button>
+                                    <button type="button" class="btn btn-sm btn-link" @onclick="CancelRowAction">Anuluj</button>
+                                </div>
+
+                                @if (rowErrorMessage is not null)
+                                {
+                                    <div class="text-danger mt-2" role="alert">@rowErrorMessage</div>
+                                }
+                            </EditForm>
                         }
-                        @if (item.StorageLocation is { } location)
+                        else
                         {
-                            <span class="ms-2 text-muted">@ProductLabels.For(location)</span>
-                        }
-                        @if (item.ExpiresOn is { } expiresOn)
-                        {
-                            <span class="ms-2 text-muted">@expiresOn.ToString("dd.MM.yyyy")</span>
-                        }
-                        @if (item.IsExpiryDue)
-                        {
-                            <span class="badge text-bg-warning ms-2">Sprawdź termin</span>
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <div>
+                                    <strong>@item.Name</strong>
+                                    @if (item.Quantity is not null)
+                                    {
+                                        <span class="ms-2">@item.Quantity</span>
+                                    }
+                                    @if (item.StorageLocation is { } location)
+                                    {
+                                        <span class="ms-2 text-muted">@ProductLabels.For(location)</span>
+                                    }
+                                    @if (item.ExpiresOn is { } expiresOn)
+                                    {
+                                        <span class="ms-2 text-muted">@expiresOn.ToString("dd.MM.yyyy")</span>
+                                    }
+                                    @if (item.IsExpiryDue)
+                                    {
+                                        <span class="badge text-bg-warning ms-2">Sprawdź termin</span>
+                                    }
+                                </div>
+
+                                <div class="ms-auto d-flex flex-wrap align-items-center gap-2">
+                                    @if (confirmingDeleteId == item.Id)
+                                    {
+                                        <span>Usunąć „@item.Name”?</span>
+                                        <button type="button" class="btn btn-sm btn-danger" disabled="@deleting" @onclick="DeleteAsync">Usuń</button>
+                                        <button type="button" class="btn btn-sm btn-link" @onclick="CancelRowAction" @ref="confirmCancelButton">Anuluj</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-sm btn-link" aria-label="@($"Zmień {item.Name}")" @onclick="() => StartEdit(item)" @ref="editButtons[item.Id]">Zmień</button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" aria-label="@($"Usuń {item.Name}")" @onclick="() => StartDelete(item)">Usuń</button>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (confirmingDeleteId == item.Id && rowErrorMessage is not null)
+                            {
+                                <div class="text-danger mt-2" role="alert">@rowErrorMessage</div>
+                            }
                         }
                     </li>
                 }
@@ -137,15 +166,30 @@ else if (products is not null)
 
     private async Task LoadAsync()
     {
+        // Add, save and delete can overlap, so only the most recent load may replace the list.
+        var version = ++loadVersion;
         try
         {
-            products = await ProductService.GetProductsAsync(userId!);
-            loadFailed = false;
+            var loaded = await ProductService.GetProductsAsync(userId!, cts.Token);
+            if (version == loadVersion)
+            {
+                products = loaded;
+                loadFailed = false;
+                // Refilled by the next render; rows that are gone must not keep a focus target.
+                editButtons.Clear();
+            }
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            // The user left the page; nothing to render.
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Failed to load products.");
-            loadFailed = true;
+            if (version == loadVersion)
+            {
+                loadFailed = true;
+            }
         }
     }
 
@@ -164,7 +208,7 @@ else if (products is not null)
         var category = form.Category!.Value;
         try
         {
-            var result = await ProductService.AddProductAsync(userId!, form);
+            var result = await ProductService.AddProductAsync(userId!, form, cts.Token);
             if (result == AddProductResult.Duplicate)
             {
                 errorMessage = $"Produkt „{name}” jest już w kategorii „{ProductLabels.For(category)}”.";
@@ -174,6 +218,10 @@ else if (products is not null)
             await LoadAsync();
             form = new ProductForm { Category = category };
             focusName = true;
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            // The user left the page; nothing to render.
         }
         catch (Exception ex)
         {
@@ -186,13 +234,194 @@ else if (products is not null)
         }
     }
 
+    // Starting an action on one row discards any other row's edit or delete confirmation.
+    private void StartEdit(ProductListItem item)
+    {
+        ClearRowState();
+        errorMessage = null;
+        editingId = item.Id;
+        // A fresh copy, so the edit never shares state with the add form or the listed item.
+        editForm = new ProductForm
+        {
+            Name = item.Name,
+            Category = item.Category,
+            Quantity = item.Quantity,
+            ExpiresOn = item.ExpiresOn,
+            StorageLocation = item.StorageLocation,
+        };
+        focusEditName = true;
+    }
+
+    private void StartDelete(ProductListItem item)
+    {
+        ClearRowState();
+        errorMessage = null;
+        confirmingDeleteId = item.Id;
+        focusConfirmCancel = true;
+    }
+
+    private void CancelRowAction()
+    {
+        var productId = editingId ?? confirmingDeleteId;
+        ClearRowState();
+        focusEditButtonFor = productId;
+    }
+
+    private void ClearRowState()
+    {
+        editingId = null;
+        editForm = null;
+        // Reassigned by the next edit row's render; cleared so focus never targets a disposed row.
+        editFields = null;
+        confirmingDeleteId = null;
+        rowErrorMessage = null;
+        focusEditName = false;
+        focusConfirmCancel = false;
+    }
+
+    private async Task SaveEditAsync()
+    {
+        // Same double-click guard as AddAsync.
+        if (savingEdit || editingId is not { } productId || editForm is null)
+        {
+            return;
+        }
+
+        errorMessage = null;
+        rowErrorMessage = null;
+        savingEdit = true;
+        // Captured before the await, because the user may switch rows while the call is in flight.
+        var edited = editForm;
+        var name = edited.Name!.Trim();
+        var category = edited.Category!.Value;
+        try
+        {
+            var result = await ProductService.UpdateProductAsync(userId!, productId, edited, cts.Token);
+            var stillEditing = editingId == productId;
+            switch (result)
+            {
+                case UpdateProductResult.Duplicate:
+                    if (stillEditing)
+                    {
+                        rowErrorMessage = $"Produkt „{name}” jest już w kategorii „{ProductLabels.For(category)}”.";
+                    }
+                    break;
+                case UpdateProductResult.NotFound:
+                    if (stillEditing)
+                    {
+                        ClearRowState();
+                    }
+                    await LoadAsync();
+                    errorMessage = "Ten produkt został już usunięty.";
+                    break;
+                default:
+                    if (stillEditing)
+                    {
+                        ClearRowState();
+                        focusEditButtonFor = productId;
+                    }
+                    // The product may have moved section, changed order or crossed the expiry threshold.
+                    await LoadAsync();
+                    break;
+            }
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            // The user left the page; nothing to render.
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to update product {ProductId}.", productId);
+            if (editingId == productId)
+            {
+                rowErrorMessage = "Nie udało się zapisać zmian. Spróbuj ponownie.";
+            }
+        }
+        finally
+        {
+            savingEdit = false;
+        }
+    }
+
+    private async Task DeleteAsync()
+    {
+        // Same double-click guard as AddAsync.
+        if (deleting || confirmingDeleteId is not { } productId)
+        {
+            return;
+        }
+
+        errorMessage = null;
+        rowErrorMessage = null;
+        deleting = true;
+        try
+        {
+            var result = await ProductService.DeleteProductAsync(userId!, productId, cts.Token);
+            if (confirmingDeleteId == productId)
+            {
+                ClearRowState();
+            }
+
+            await LoadAsync();
+            if (result == DeleteProductResult.NotFound)
+            {
+                errorMessage = "Ten produkt został już usunięty.";
+            }
+        }
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
+        {
+            // The user left the page; nothing to render.
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to delete product {ProductId}.", productId);
+            if (confirmingDeleteId == productId)
+            {
+                rowErrorMessage = "Nie udało się usunąć produktu. Spróbuj ponownie.";
+            }
+        }
+        finally
+        {
+            deleting = false;
+        }
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         // The reset form is rendered first, so the input can only be focused after that render.
-        if (focusName && nameInput?.Element is { } element)
+        if (focusName && addFields is not null)
         {
             focusName = false;
-            await element.FocusAsync();
+            await addFields.FocusNameAsync();
         }
+
+        // Likewise, the edit row's inputs only exist after the render that switched it into edit mode.
+        if (focusEditName && editFields is not null)
+        {
+            focusEditName = false;
+            await editFields.FocusNameAsync();
+        }
+
+        if (focusConfirmCancel)
+        {
+            focusConfirmCancel = false;
+            await ElementFocus.TryFocusAsync(confirmCancelButton);
+        }
+
+        // After a reload the row may sit in another section, so look its button up by product ID.
+        if (focusEditButtonFor is { } productId)
+        {
+            focusEditButtonFor = null;
+            if (editButtons.TryGetValue(productId, out var button))
+            {
+                await ElementFocus.TryFocusAsync(button);
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        cts.Cancel();
+        cts.Dispose();
     }
 }

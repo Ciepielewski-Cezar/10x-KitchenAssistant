@@ -47,7 +47,8 @@ Osoba gotująca dla siebie co najmniej raz w tygodniu traci czas na szukanie prz
 | S-03 | recipe-ranking          | widzi propozycje uporządkowane według oceny i liczby braków, które liczy aplikacja                              | S-02          | FR-005, US-01, Business Logic              | proposed |
 | S-04 | recipe-details          | otwiera szczegóły wybranej propozycji i widzi pełny przepis w spójnej strukturze                                | S-02          | FR-006, NFR struktura, NFR ≤ 1 min         | proposed |
 | S-05 | meal-parameters         | wybiera parametry posiłku z małego zestawu, a propozycje je respektują                                          | S-02          | FR-004, US-01, Business Logic              | proposed |
-| S-06 | pantry-edit-remove      | zmienia albo usuwa produkt ze swojej listy                                                                      | S-01          | FR-003                                     | proposed |
+| S-06 | pantry-edit-remove      | zmienia albo usuwa produkt ze swojej listy                                                                      | S-01          | FR-003                                     | in-progress |
+| S-07 | recipe-generation-spike | dostaje propozycje w ≤ 1 min na ustawieniach modelu potwierdzonych pomiarem 10 prawdziwych wywołań              | S-02, lokalny klucz API z limitem wydatków | NFR ≤ 1 min, FR-005, NFR struktura | ready |
 
 ## Streams
 
@@ -160,7 +161,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** niskie ryzyko i brak zależnych kawałków; stoi za pierwszym dowodem, bo przy celu `speed` nie powinien go opóźniać, ale jest konieczny, bo stan produktów szybko się dezaktualizuje.
-- **Status:** proposed
+- **Status:** in-progress
 
 ## Backlog Handoff
 
