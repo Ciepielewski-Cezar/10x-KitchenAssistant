@@ -13,7 +13,7 @@ public static class ScoreLabels
         $"Zużywa {useFirstCount} {Plural(useFirstCount, "produkt", "produkty", "produktów")} do szybkiego zużycia";
 
     public static string Hidden(int hiddenCount) =>
-        $"Ukryto {hiddenCount} {Plural(hiddenCount, "propozycję", "propozycje", "propozycji")} z więcej niż {RecipeRanker.MaxMissing} brakami";
+        $"Ukryto {hiddenCount} {Plural(hiddenCount, "propozycję, której", "propozycje, którym", "propozycji, którym")} brakuje więcej niż {RecipeRanker.MaxMissing} składników";
 
     // Polish plural forms: one for 1, few for a last digit of 2-4 (except 12-14), many for the rest (0 included).
     private static string Plural(int count, string one, string few, string many)

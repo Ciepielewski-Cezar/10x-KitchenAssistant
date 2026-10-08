@@ -30,14 +30,18 @@ public enum IngredientStatus
 // ProductId and Category are set only when Owned; Name is then the user's product name, otherwise the AI's name.
 public record ProposalIngredient(string Name, string? Amount, IngredientStatus Status, int? ProductId, ProductCategory? Category);
 
-// Computed in code from the classifier's ingredient statuses, never read from the AI. OwnedCount (X) and CountedCount (Y)
-// count ingredient lines with always-at-home ones left out, so an owned product listed twice counts twice; UseFirstCount
-// counts distinct use-first products among the owned lines.
+// Computed in code from the classifier's ingredient statuses, never read from the AI. OwnedCount (X) counts distinct owned
+// products, so an AI repeating a product can't lift the recipe; CountedCount (Y) adds the missing lines, with always-at-home
+// ones left out. UseFirstCount counts distinct use-first products among the owned lines.
 public record RecipeScore(int OwnedCount, int CountedCount, int MissingCount, int UseFirstCount)
 {
     public static RecipeScore From(IReadOnlyList<ProposalIngredient> ingredients)
     {
-        var owned = ingredients.Count(i => i.Status == IngredientStatus.Owned);
+        var owned = ingredients
+            .Where(i => i.Status == IngredientStatus.Owned)
+            .Select(i => i.ProductId)
+            .Distinct()
+            .Count();
         var missing = ingredients.Count(i => i.Status == IngredientStatus.Missing);
         var useFirst = ingredients
             .Where(i => i.Status == IngredientStatus.Owned && i.Category == ProductCategory.UseFirst)

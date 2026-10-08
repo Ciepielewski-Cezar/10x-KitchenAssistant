@@ -201,6 +201,20 @@ public sealed class RecipeServiceTests : IDisposable
         Assert.Equal(0, result.HiddenCount);
     }
 
+    [Fact]
+    public async Task Always_at_home_recipe_is_not_counted_as_hidden()
+    {
+        var eggs = await AddAsync(UserA, "jajka");
+        var generator = new StubGenerator((_, _) => Task.FromResult(JsonOf(
+            Recipe("Woda z solą", new AiIngredient(null, "woda", null), new AiIngredient(null, "sól", null)),
+            Recipe("Trzy braki", [new AiIngredient(eggs, "jajka", null), .. Missing(3)]))));
+
+        var result = await Service(generator).GenerateAsync(UserA);
+
+        Assert.Equal(RecipeGenerationStatus.NoneWithinMissingLimit, result.Status);
+        Assert.Equal(1, result.HiddenCount);
+    }
+
     public static TheoryData<Exception> GeneratorFailures() => new()
     {
         new RecipeGenerationException("refusal"),

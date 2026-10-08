@@ -22,11 +22,11 @@ public class RecipeScoreTests
     }
 
     [Fact]
-    public void Duplicated_owned_line_counts_twice_but_uses_up_one_product()
+    public void Duplicated_owned_line_counts_once()
     {
         var score = RecipeScore.From([Owned(1, "masło", ProductCategory.UseFirst), Owned(1, "masło", ProductCategory.UseFirst), Missing("mąka")]);
 
-        Assert.Equal(new RecipeScore(OwnedCount: 2, CountedCount: 3, MissingCount: 1, UseFirstCount: 1), score);
+        Assert.Equal(new RecipeScore(OwnedCount: 1, CountedCount: 2, MissingCount: 1, UseFirstCount: 1), score);
     }
 
     [Fact]

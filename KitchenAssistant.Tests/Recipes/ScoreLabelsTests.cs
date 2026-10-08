@@ -38,12 +38,12 @@ public class ScoreLabelsTests
     }
 
     [Theory]
-    [InlineData(1, "Ukryto 1 propozycję z więcej niż 2 brakami")]
-    [InlineData(2, "Ukryto 2 propozycje z więcej niż 2 brakami")]
-    [InlineData(4, "Ukryto 4 propozycje z więcej niż 2 brakami")]
-    [InlineData(5, "Ukryto 5 propozycji z więcej niż 2 brakami")]
-    [InlineData(12, "Ukryto 12 propozycji z więcej niż 2 brakami")]
-    [InlineData(22, "Ukryto 22 propozycje z więcej niż 2 brakami")]
+    [InlineData(1, "Ukryto 1 propozycję, której brakuje więcej niż 2 składników")]
+    [InlineData(2, "Ukryto 2 propozycje, którym brakuje więcej niż 2 składników")]
+    [InlineData(4, "Ukryto 4 propozycje, którym brakuje więcej niż 2 składników")]
+    [InlineData(5, "Ukryto 5 propozycji, którym brakuje więcej niż 2 składników")]
+    [InlineData(12, "Ukryto 12 propozycji, którym brakuje więcej niż 2 składników")]
+    [InlineData(22, "Ukryto 22 propozycje, którym brakuje więcej niż 2 składników")]
     public void Hidden_uses_polish_plural_forms(int count, string expected)
     {
         Assert.Equal(expected, ScoreLabels.Hidden(count));
