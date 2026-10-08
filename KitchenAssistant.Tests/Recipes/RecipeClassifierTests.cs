@@ -17,10 +17,14 @@ public class RecipeClassifierTests
     private static AiRecipe Recipe(string? title = "Omlet", IReadOnlyList<AiIngredient>? ingredients = null, IReadOnlyList<string?>? steps = null) =>
         new(title, "Opis", 15, ingredients ?? [new AiIngredient(1, "jajka", "2 szt.")], steps ?? ["Usmaż."]);
 
+    // The second ingredient keeps the recipe scorable (a recipe of only always-at-home items is dropped); the first is the
+    // one under test.
     private static ProposalIngredient ClassifyOne(int? productId, string name, ProductList? products = null)
     {
-        var proposal = Assert.Single(RecipeClassifier.Classify([Recipe(ingredients: [new AiIngredient(productId, name, "1 szt.")])], products ?? Products));
-        return Assert.Single(proposal.Ingredients);
+        var recipe = Recipe(ingredients: [new AiIngredient(productId, name, "1 szt."), new AiIngredient(null, "śmietana", null)]);
+        var proposal = Assert.Single(RecipeClassifier.Classify([recipe], products ?? Products));
+        Assert.Equal(2, proposal.Ingredients.Count);
+        return proposal.Ingredients[0];
     }
 
     [Fact]
@@ -149,18 +153,35 @@ public class RecipeClassifierTests
     }
 
     [Fact]
-    public void Only_the_first_five_usable_recipes_are_kept_in_ai_order()
+    public void Recipe_made_only_of_always_at_home_items_is_dropped_and_not_counted()
     {
+        AiRecipe[] recipes =
+        [
+            Recipe(title: "Woda z solą", ingredients: [new AiIngredient(null, "woda", null), new AiIngredient(null, "sól", null)]),
+            Recipe(title: "Dobry"),
+        ];
+
+        var proposal = Assert.Single(RecipeClassifier.Classify(recipes, Products, out var stats));
+
+        Assert.Equal("Dobry", proposal.Title);
+        Assert.Equal(0, stats.AlwaysAtHome);
+    }
+
+    [Fact]
+    public void Every_usable_recipe_is_kept_in_ai_order_with_no_cap()
+    {
+        // Ranking caps the list after sorting, so the classifier must not cut it first.
         var recipes = Enumerable.Range(1, 7).Select(n => Recipe(title: $"Przepis {n}")).Prepend(Recipe(title: null)).ToList();
 
         var proposals = RecipeClassifier.Classify(recipes, Products);
 
-        Assert.Equal(new[] { "Przepis 1", "Przepis 2", "Przepis 3", "Przepis 4", "Przepis 5" }, proposals.Select(p => p.Title));
+        Assert.Equal(Enumerable.Range(1, 7).Select(n => $"Przepis {n}"), proposals.Select(p => p.Title));
     }
 
     [Fact]
-    public void Recipe_with_three_missing_ingredients_is_kept()
+    public void Recipe_with_three_missing_ingredients_is_kept_for_the_ranker_to_hide()
     {
+        // The classifier only scores; RecipeRanker applies the missing limit.
         var recipe = Recipe(ingredients:
         [
             new AiIngredient(1, "jajka", null),
@@ -172,6 +193,7 @@ public class RecipeClassifierTests
         var proposal = Assert.Single(RecipeClassifier.Classify([recipe], Products));
 
         Assert.Equal(3, proposal.Ingredients.Count(i => i.Status == IngredientStatus.Missing));
+        Assert.Equal(new RecipeScore(OwnedCount: 1, CountedCount: 4, MissingCount: 3, UseFirstCount: 1), proposal.Score);
     }
 
     [Fact]

@@ -3,6 +3,7 @@
 @using System.ComponentModel.DataAnnotations
 @using KitchenAssistant.Components.Account
 @using KitchenAssistant.Components.Account.Shared
+@using KitchenAssistant.Recipes
 
 @inject IWebHostEnvironment Environment
 @inject NavigationManager NavigationManager
@@ -55,6 +56,18 @@
         <StatusMessage Kind="StatusKind.Success" Message="Twój profil został zaktualizowany." />
         <StatusMessage Kind="StatusKind.Error" Message="Nie udało się zapisać zmian. Spróbuj ponownie." />
         <StatusMessage Message="Error: komunikat bez rodzaju powinien być czerwony." />
+    </section>
+
+    <section class="mb-4">
+        <h2>RecipeScoreSummary</h2>
+        <h3 class="h6">0 missing, 2 use-first</h3>
+        <RecipeScoreSummary Score="new RecipeScore(5, 5, 0, 2)" />
+        <h3 class="h6">1 missing, 1 use-first</h3>
+        <RecipeScoreSummary Score="new RecipeScore(3, 4, 1, 1)" />
+        <h3 class="h6">2 missing, 0 use-first</h3>
+        <RecipeScoreSummary Score="new RecipeScore(2, 4, 2, 0)" />
+        <h3 class="h6">Y = 1 (singular)</h3>
+        <RecipeScoreSummary Score="new RecipeScore(1, 1, 0, 0)" />
     </section>
 
     <section class="mb-4">

@@ -123,7 +123,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** poprawność oceny to twarda reguła produktu (liczy ją aplikacja, nigdy AI); reguła jest już w pełni określona w PRD v2 (maks. 2 braki, odrzucanie ponad limit, lista „zawsze w domu”, ocena „Masz X z Y”), więc da się ją zweryfikować testami bez AI.
-- **Status:** proposed
+- **Status:** in-progress
 
 ### S-04: Szczegóły przepisu
 
