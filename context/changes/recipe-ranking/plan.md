@@ -261,13 +261,13 @@ None. No schema or persisted data changes.
 
 #### Automated
 
-- [x] 2.1 Solution builds: `dotnet build`
-- [x] 2.2 All tests pass: `dotnet test`
-- [x] 2.3 No colour literals in touched UI files
+- [x] 2.1 Solution builds: `dotnet build` — 887d523
+- [x] 2.2 All tests pass: `dotnet test` — 887d523
+- [x] 2.3 No colour literals in touched UI files — 887d523
 
 #### Manual
 
-- [x] 2.4 Fake generator: ranked proposals with correct scores and the „Ukryto 1 propozycję” note
-- [x] 2.5 All-hidden state shows the warning, retry and product link
-- [x] 2.6 `/dev/ui` shows the four `RecipeScoreSummary` states at phone width
-- [x] 2.7 Existing states still work: no products, failure with retry, loading spinner
+- [x] 2.4 Fake generator: ranked proposals with correct scores and the „Ukryto 1 propozycję” note — 887d523
+- [x] 2.5 All-hidden state shows the warning, retry and product link — 887d523
+- [x] 2.6 `/dev/ui` shows the four `RecipeScoreSummary` states at phone width — 887d523
+- [x] 2.7 Existing states still work: no products, failure with retry, loading spinner — 887d523
