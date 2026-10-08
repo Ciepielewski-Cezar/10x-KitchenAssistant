@@ -44,7 +44,7 @@ Osoba gotująca dla siebie co najmniej raz w tygodniu traci czas na szukanie prz
 | F-01 | deployment              | (foundation) aplikacja działa na produkcji z alertami o błędach, a merge do `main` wdraża ją automatycznie        | —             | frontmatter `timeline_budget`, NFR ≤ 1 min | ready    |
 | S-01 | pantry-add-products     | po zalogowaniu widzi swoją prywatną listę produktów i dodaje produkt do jednej z dwóch kategorii                | —             | FR-001, FR-002, US-01, Access Control      | done        |
 | S-02 | first-recipe-generation | prosi o przepisy i w ciągu minuty dostaje kilka propozycji wygenerowanych przez AI z jego produktów             | S-01, lokalny klucz API dostawcy AI (krok L2 planu local-dev) | US-01, FR-005, NFR ≤ 1 min, NFR struktura  | done |
-| S-03 | recipe-ranking          | widzi propozycje uporządkowane według oceny i liczby braków, które liczy aplikacja                              | S-02          | FR-005, US-01, Business Logic              | proposed |
+| S-03 | recipe-ranking          | widzi propozycje uporządkowane według oceny i liczby braków, które liczy aplikacja                              | S-02          | FR-005, US-01, Business Logic              | done |
 | S-04 | recipe-details          | otwiera szczegóły wybranej propozycji i widzi pełny przepis w spójnej strukturze                                | S-02          | FR-006, NFR struktura, NFR ≤ 1 min         | proposed |
 | S-05 | meal-parameters         | wybiera parametry posiłku z małego zestawu, a propozycje je respektują                                          | S-02          | FR-004, US-01, Business Logic              | proposed |
 | S-06 | pantry-edit-remove      | zmienia albo usuwa produkt ze swojej listy                                                                      | S-01          | FR-003                                     | in-progress |
@@ -124,7 +124,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** poprawność oceny to twarda reguła produktu (liczy ją aplikacja, nigdy AI); reguła jest już w pełni określona w PRD v2 (maks. 2 braki, odrzucanie ponad limit, lista „zawsze w domu”, ocena „Masz X z Y”), więc da się ją zweryfikować testami bez AI.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-04: Szczegóły przepisu
 
@@ -200,3 +200,4 @@ Brak otwartych pytań. Rozstrzygnięte 2026-09-30:
 
 - **S-01: użytkownik po zalogowaniu widzi swoją prywatną listę produktów (tworzoną automatycznie, bez żadnej konfiguracji) i dodaje produkt do kategorii „zużyj w pierwszej kolejności” albo „w szafkach i zamrażalniku”.** — Archived 2026-10-03 → `context/archive/2026-10-03-pantry-add-products/`. Lesson: —.
 - **S-02: użytkownik z zapisanymi produktami prosi o przepisy i w ciągu minuty dostaje do 5 propozycji wygenerowanych przez AI, zbudowanych z jego produktów, każdą z listą składników i krokami przygotowania; składnik z zapasów jest powiązany z produktem użytkownika przez identyfikator (bez oceny i kolejności — te dochodzą w `S-03`).** — Archived 2026-10-08 → `context/archive/2026-10-03-first-recipe-generation/`. Lesson: —.
+- **S-03: użytkownik widzi propozycje uporządkowane: najpierw niewymagające zakupów i zużywające najwięcej produktów „zużyj w pierwszej kolejności”, potem te z 1–2 brakami; przy każdej widzi ocenę „Masz X z Y składników” i liczbę braków, które wylicza aplikacja, a nie AI; propozycje z więcej niż 2 brakami nie są pokazywane.** — Archived 2026-10-08 → `context/archive/2026-10-08-recipe-ranking/`. Lesson: —.
