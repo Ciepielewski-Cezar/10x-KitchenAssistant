@@ -208,24 +208,24 @@ No schema change. `dotnet ef migrations has-pending-model-changes` must still ex
 
 #### Automated
 
-- [x] 1.1 Solution builds: `dotnet build KitchenAssistant.slnx`
-- [x] 1.2 Service tests pass: `dotnet test KitchenAssistant.slnx`
-- [x] 1.3 No pending model changes: `dotnet ef migrations has-pending-model-changes` exits 0
+- [x] 1.1 Solution builds: `dotnet build KitchenAssistant.slnx` — 0d272e9
+- [x] 1.2 Service tests pass: `dotnet test KitchenAssistant.slnx` — 0d272e9
+- [x] 1.3 No pending model changes: `dotnet ef migrations has-pending-model-changes` exits 0 — 0d272e9
 
 ### Phase 2: Inline edit and delete on `/products`
 
 #### Automated
 
-- [ ] 2.1 Solution builds: `dotnet build KitchenAssistant.slnx`
-- [ ] 2.2 Tests still pass: `dotnet test KitchenAssistant.slnx`
-- [ ] 2.3 No literal colours in `Products.razor` and `ProductFields.razor`
+- [x] 2.1 Solution builds: `dotnet build KitchenAssistant.slnx`
+- [x] 2.2 Tests still pass: `dotnet test KitchenAssistant.slnx`
+- [x] 2.3 No literal colours in `Products.razor` and `ProductFields.razor`
 
 #### Manual
 
-- [ ] 2.4 Add flow unchanged; add-form labels focus add-form inputs
-- [ ] 2.5 „Zmień” pre-fills and focuses; field changes and clearing save; „Anuluj” discards
-- [ ] 2.6 Category change moves the product A→Z; expiry today shows „Sprawdź termin”
-- [ ] 2.7 Case-only rename saves; colliding rename/move shows duplicate message; invalid input saves nothing
-- [ ] 2.8 Inline delete confirm works; only one row in edit/confirm state at a time
-- [ ] 2.9 Product deleted in another tab shows „Ten produkt został już usunięty.” and refreshed list
-- [ ] 2.10 Row buttons wrap at 375 px without horizontal scroll
+- [x] 2.4 Add flow unchanged; add-form labels focus add-form inputs
+- [x] 2.5 „Zmień” pre-fills and focuses; field changes and clearing save; „Anuluj” discards
+- [x] 2.6 Category change moves the product A→Z; expiry today shows „Sprawdź termin”
+- [x] 2.7 Case-only rename saves; colliding rename/move shows duplicate message; invalid input saves nothing
+- [x] 2.8 Inline delete confirm works; only one row in edit/confirm state at a time
+- [x] 2.9 Product deleted in another tab shows „Ten produkt został już usunięty.” and refreshed list
+- [x] 2.10 Row buttons wrap at 375 px without horizontal scroll

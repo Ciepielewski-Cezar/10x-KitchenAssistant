@@ -1,0 +1,61 @@
+@using KitchenAssistant.Data
+@using KitchenAssistant.Pantry
+
+@* The five product inputs, shared by the add form and the edit row. Must be rendered inside an EditForm whose model is Form. *@
+
+<FormField Id="@($"{IdPrefix}-name")" Label="Nazwa" For="() => Form.Name">
+    <InputText id="@($"{IdPrefix}-name")" class="form-control" @bind-Value="Form.Name" @ref="nameInput" />
+</FormField>
+
+<fieldset class="mb-3">
+    <legend class="form-label fs-6">Kategoria</legend>
+    <InputRadioGroup Name="@($"{IdPrefix}-category")" @bind-Value="Form.Category">
+        <div class="form-check">
+            <InputRadio id="@($"{IdPrefix}-category-use-first")" class="form-check-input" Value="@((ProductCategory?)ProductCategory.UseFirst)" />
+            <label for="@($"{IdPrefix}-category-use-first")" class="form-check-label">@ProductLabels.For(ProductCategory.UseFirst)</label>
+        </div>
+        <div class="form-check">
+            <InputRadio id="@($"{IdPrefix}-category-stored")" class="form-check-input" Value="@((ProductCategory?)ProductCategory.Stored)" />
+            <label for="@($"{IdPrefix}-category-stored")" class="form-check-label">@ProductLabels.For(ProductCategory.Stored)</label>
+        </div>
+    </InputRadioGroup>
+    <ValidationMessage For="() => Form.Category" />
+</fieldset>
+
+<FormField Id="@($"{IdPrefix}-quantity")" Label="Ilość (opcjonalnie)" For="() => Form.Quantity">
+    <InputText id="@($"{IdPrefix}-quantity")" class="form-control" @bind-Value="Form.Quantity" />
+</FormField>
+
+<FormField Id="@($"{IdPrefix}-expires-on")" Label="Data ważności (opcjonalnie)" For="() => Form.ExpiresOn">
+    <InputDate id="@($"{IdPrefix}-expires-on")" class="form-control" @bind-Value="Form.ExpiresOn" ParsingErrorMessage="Podaj poprawną datę." />
+</FormField>
+
+<FormField Id="@($"{IdPrefix}-location")" Label="Miejsce przechowywania (opcjonalnie)" For="() => Form.StorageLocation">
+    <InputSelect id="@($"{IdPrefix}-location")" class="form-select" @bind-Value="Form.StorageLocation" ParsingErrorMessage="Wybierz poprawne miejsce przechowywania.">
+        <option value="">—</option>
+        @foreach (var location in Enum.GetValues<StorageLocation>())
+        {
+            <option value="@location">@ProductLabels.For(location)</option>
+        }
+    </InputSelect>
+</FormField>
+
+@code {
+    [Parameter, EditorRequired]
+    public ProductForm Form { get; set; } = default!;
+
+    // Every id, label target and the radio-group name derive from this, so two instances on one page never share an id.
+    [Parameter, EditorRequired]
+    public string IdPrefix { get; set; } = default!;
+
+    private InputText? nameInput;
+
+    // Only works after this component has rendered, so callers invoke it from OnAfterRenderAsync.
+    public async Task FocusNameAsync()
+    {
+        if (nameInput?.Element is { } element)
+        {
+            await element.FocusAsync();
+        }
+    }
+}
