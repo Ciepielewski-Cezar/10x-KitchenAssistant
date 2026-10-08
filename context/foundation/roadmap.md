@@ -47,7 +47,7 @@ Osoba gotująca dla siebie co najmniej raz w tygodniu traci czas na szukanie prz
 | S-03 | recipe-ranking          | widzi propozycje uporządkowane według oceny i liczby braków, które liczy aplikacja                              | S-02          | FR-005, US-01, Business Logic              | done |
 | S-04 | recipe-details          | otwiera szczegóły wybranej propozycji i widzi pełny przepis w spójnej strukturze                                | S-02          | FR-006, NFR struktura, NFR ≤ 1 min         | proposed |
 | S-05 | meal-parameters         | wybiera parametry posiłku z małego zestawu, a propozycje je respektują                                          | S-02          | FR-004, US-01, Business Logic              | proposed |
-| S-06 | pantry-edit-remove      | zmienia albo usuwa produkt ze swojej listy                                                                      | S-01          | FR-003                                     | in-progress |
+| S-06 | pantry-edit-remove      | zmienia albo usuwa produkt ze swojej listy                                                                      | S-01          | FR-003                                     | done |
 | S-07 | recipe-generation-spike | dostaje propozycje w ≤ 1 min na ustawieniach modelu potwierdzonych pomiarem 10 prawdziwych wywołań              | S-02, lokalny klucz API z limitem wydatków | NFR ≤ 1 min, FR-005, NFR struktura | ready |
 
 ## Streams
@@ -161,7 +161,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Blockers:** —
 - **Unknowns:** —
 - **Risk:** niskie ryzyko i brak zależnych kawałków; stoi za pierwszym dowodem, bo przy celu `speed` nie powinien go opóźniać, ale jest konieczny, bo stan produktów szybko się dezaktualizuje.
-- **Status:** in-progress
+- **Status:** done
 
 ## Backlog Handoff
 
@@ -201,3 +201,4 @@ Brak otwartych pytań. Rozstrzygnięte 2026-09-30:
 - **S-01: użytkownik po zalogowaniu widzi swoją prywatną listę produktów (tworzoną automatycznie, bez żadnej konfiguracji) i dodaje produkt do kategorii „zużyj w pierwszej kolejności” albo „w szafkach i zamrażalniku”.** — Archived 2026-10-03 → `context/archive/2026-10-03-pantry-add-products/`. Lesson: —.
 - **S-02: użytkownik z zapisanymi produktami prosi o przepisy i w ciągu minuty dostaje do 5 propozycji wygenerowanych przez AI, zbudowanych z jego produktów, każdą z listą składników i krokami przygotowania; składnik z zapasów jest powiązany z produktem użytkownika przez identyfikator (bez oceny i kolejności — te dochodzą w `S-03`).** — Archived 2026-10-08 → `context/archive/2026-10-03-first-recipe-generation/`. Lesson: —.
 - **S-03: użytkownik widzi propozycje uporządkowane: najpierw niewymagające zakupów i zużywające najwięcej produktów „zużyj w pierwszej kolejności”, potem te z 1–2 brakami; przy każdej widzi ocenę „Masz X z Y składników” i liczbę braków, które wylicza aplikacja, a nie AI; propozycje z więcej niż 2 brakami nie są pokazywane.** — Archived 2026-10-08 → `context/archive/2026-10-08-recipe-ranking/`. Lesson: —.
+- **S-06: użytkownik zmienia nazwę lub kategorię produktu albo usuwa produkt ze swojej listy.** — Archived 2026-10-08 → `context/archive/2026-10-08-pantry-edit-remove/`. Lesson: —.
