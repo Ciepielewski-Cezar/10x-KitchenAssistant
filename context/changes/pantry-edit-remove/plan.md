@@ -216,16 +216,16 @@ No schema change. `dotnet ef migrations has-pending-model-changes` must still ex
 
 #### Automated
 
-- [x] 2.1 Solution builds: `dotnet build KitchenAssistant.slnx`
-- [x] 2.2 Tests still pass: `dotnet test KitchenAssistant.slnx`
-- [x] 2.3 No literal colours in `Products.razor` and `ProductFields.razor`
+- [x] 2.1 Solution builds: `dotnet build KitchenAssistant.slnx` — f4f0318
+- [x] 2.2 Tests still pass: `dotnet test KitchenAssistant.slnx` — f4f0318
+- [x] 2.3 No literal colours in `Products.razor` and `ProductFields.razor` — f4f0318
 
 #### Manual
 
-- [x] 2.4 Add flow unchanged; add-form labels focus add-form inputs
-- [x] 2.5 „Zmień” pre-fills and focuses; field changes and clearing save; „Anuluj” discards
-- [x] 2.6 Category change moves the product A→Z; expiry today shows „Sprawdź termin”
-- [x] 2.7 Case-only rename saves; colliding rename/move shows duplicate message; invalid input saves nothing
-- [x] 2.8 Inline delete confirm works; only one row in edit/confirm state at a time
-- [x] 2.9 Product deleted in another tab shows „Ten produkt został już usunięty.” and refreshed list
-- [x] 2.10 Row buttons wrap at 375 px without horizontal scroll
+- [x] 2.4 Add flow unchanged; add-form labels focus add-form inputs — f4f0318
+- [x] 2.5 „Zmień” pre-fills and focuses; field changes and clearing save; „Anuluj” discards — f4f0318
+- [x] 2.6 Category change moves the product A→Z; expiry today shows „Sprawdź termin” — f4f0318
+- [x] 2.7 Case-only rename saves; colliding rename/move shows duplicate message; invalid input saves nothing — f4f0318
+- [x] 2.8 Inline delete confirm works; only one row in edit/confirm state at a time — f4f0318
+- [x] 2.9 Product deleted in another tab shows „Ten produkt został już usunięty.” and refreshed list — f4f0318
+- [x] 2.10 Row buttons wrap at 375 px without horizontal scroll — f4f0318
