@@ -26,9 +26,9 @@ A signed-in user picks „Przepisy” in the nav menu. The page shows a „Zapro
 
 A user with no products sees the button disabled and a link to `/products`. Any failure (timeout, overload, refusal, truncated or malformed output, missing key) shows „Nie udało się wygenerować przepisów.” with a „Spróbuj ponownie” button, never later than ~60 s after the click; the cause is logged. Results live only in the page's state.
 
-In Development the app uses the fake generator (`Recipes:Generator = Fake`); every other environment uses Anthropic, and the app refuses to start if the fake is configured outside Development. After Phase 3, `spike.md` records measured latency, tokens and ID validity for the chosen model/effort, and those settings are the committed defaults.
+In Development the app uses the fake generator (`Recipes:Generator = Fake`); every other environment uses Anthropic, and the app refuses to start if the fake is configured outside Development. ~~After Phase 3, `spike.md` records measured latency, tokens and ID validity for the chosen model/effort, and those settings are the committed defaults.~~ Moved 2026-10-08 to `recipe-generation-spike` (S-07). S-02 ships with the Sonnet 5.5 / low defaults, backed by one smoke-test call.
 
-Verify with `dotnet test KitchenAssistant.slnx`, the Phase 2 browser walkthrough (two accounts, fake generator), and the Phase 3 spike log.
+Verify with `dotnet test KitchenAssistant.slnx`, the Phase 2 browser walkthrough (two accounts, fake generator), and the Phase 3 smoke test.
 
 ### Key Discoveries:
 
@@ -260,33 +260,13 @@ The real structured-output call, config-driven wiring, and the user-facing page 
 
 ## Phase 3: Live gate — spike and smoke test
 
+> **Scope change 2026-10-08:** the measured spike was originally changes 1–3 here: dev key and switch, the ≥ 10-call spike log, and deciding and locking the defaults. It moved to its own change, `context/changes/recipe-generation-spike/` (roadmap S-07), together with `spike.md` and the success criteria that were Progress rows 3.1–3.5. S-02 keeps only the production-like smoke test, which passed on 2026-10-05 (14.5 s, 5 proposals, 20/20 valid IDs; the result is recorded in the moved `spike.md`).
+
 ### Overview
 
-The only phase that spends money (~10–20 calls, well under $2 at Sonnet 5.5 estimates). It answers the roadmap's open question — do 5 full recipes in one call fit in a minute? — and locks the defaults.
+One real call on the production-like stack proves the Production wiring. The latency and quality measurement that locks the model/effort defaults is S-07's job.
 
 ### Changes Required:
-
-#### 1. Dev key and switch (user)
-
-**Intent**: Enable real calls without exposing the key.
-
-**Contract**: You run `dotnet user-secrets set ANTHROPIC_API_KEY <dev-key>` yourself (never in chat), with a low monthly spend limit on the dev workspace in the Console; set `Recipes:Generator = Anthropic` via user-secrets or a local override (do not commit the Development switch). Off VPN if TLS inspection breaks calls (`local-dev-plan.md:99`).
-
-#### 2. Spike log
-
-**File**: `context/changes/first-recipe-generation/spike.md`
-
-**Intent**: Record evidence that decides the defaults and S-04's shape.
-
-**Contract**: For a realistic pantry of ~20–30 Polish products: ≥ 10 calls at Sonnet 5.5 / low (excluding the first, schema-compiling call), each row with elapsed s, stop reason, input/output/thinking tokens, recipe count, owned-by-ID / owned-by-name-fallback / unknown-ID counts, and a quality note (Polish, logical steps). Summary: median and max latency, estimated cost per request, verdict.
-
-#### 3. Decide and lock
-
-**Files**: `appsettings.json`, `context/foundation/roadmap.md` (S-02 Unknowns)
-
-**Intent**: Commit the measured choice.
-
-**Contract**: If every measured call finishes within 60 s, keep (or adjust) `Recipes:Model`/`Effort` defaults and record the answer in the roadmap's S-02 Unknowns. If not, apply levers in order, re-measuring ≥ 5 calls each: Haiku 4.5 → terser recipes (prompt) → stop and re-plan the list/details split with S-04. If the API rejects the nullable `productId` schema, switch to `anyOf` and re-run.
 
 #### 4. Smoke test on the production-like stack
 
@@ -296,19 +276,9 @@ The only phase that spends money (~10–20 calls, well under $2 at Sonnet 5.5 es
 
 ### Success Criteria:
 
-#### Automated Verification:
-
-- All tests still pass after the default changes: `dotnet test KitchenAssistant.slnx`
-
 #### Manual Verification:
 
-- Dev key set via user-secrets with a Console spend limit; the startup missing-key warning is gone
-- At least 10 real calls on a realistic pantry each finish within 60 s, with latency, tokens and stop reason recorded in `spike.md`
-- Recipes are in Polish with logical steps, and the ID validity rate is recorded in `spike.md`
-- The chosen model/effort is committed as the `Recipes` defaults in `appsettings.json` and the roadmap S-02 unknown is answered (or the split is escalated to re-planning)
 - On the production-like stack (`local-prod.ps1`), one generation returns proposals
-
-**Implementation Note**: This phase is manual-heavy and needs the user's key; the agent prepares `spike.md` and reads the log lines, the user runs the calls.
 
 ---
 
@@ -420,14 +390,8 @@ Behaviour added during implementation or by the implementation review (`reviews/
 
 ### Phase 3: Live gate — spike and smoke test
 
-#### Automated
-
-- [ ] 3.1 All tests still pass after the default changes: `dotnet test KitchenAssistant.slnx`
+> Moved 2026-10-08: rows 3.1–3.5 (the 10-call spike and locking the defaults) are now steps 1.1–1.5 of `context/changes/recipe-generation-spike/plan.md` (roadmap S-07). Only the smoke test stays in S-02.
 
 #### Manual
 
-- [ ] 3.2 Dev key set via user-secrets with a Console spend limit; the startup missing-key warning is gone
-- [ ] 3.3 At least 10 real calls on a realistic pantry each finish within 60 s, with latency, tokens and stop reason recorded in `spike.md`
-- [ ] 3.4 Recipes are in Polish with logical steps, and the ID validity rate is recorded in `spike.md`
-- [ ] 3.5 The chosen model/effort is committed as the `Recipes` defaults in `appsettings.json` and the roadmap S-02 unknown is answered (or the split is escalated to re-planning)
 - [x] 3.6 On the production-like stack (`local-prod.ps1`), one generation returns proposals — 3c24ae6
