@@ -398,6 +398,29 @@ public sealed class ProductServiceTests : IDisposable
         Assert.Equal(new[] { "mleko", "ser" }, names);
     }
 
+    [Fact]
+    public async Task Update_of_a_product_deleted_before_the_write_is_not_found()
+    {
+        await _service.AddProductAsync(UserA, Form("ser"));
+        var serId = await IdOf(UserA, "ser");
+
+        // The product is deleted (e.g. in another tab) after both checks, right before the write context opens.
+        var factory = new ConnectionDbContextFactory(_connection)
+        {
+            BeforeCreate = (call, db) =>
+            {
+                if (call == 3)
+                {
+                    db.Products.Where(p => p.Id == serId).ExecuteDelete();
+                }
+            },
+        };
+        var service = new ProductService(factory, _time);
+
+        Assert.Equal(UpdateProductResult.NotFound, await service.UpdateProductAsync(UserA, serId, Form("twaróg")));
+        Assert.Empty((await _service.GetProductsAsync(UserA)).UseFirst);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

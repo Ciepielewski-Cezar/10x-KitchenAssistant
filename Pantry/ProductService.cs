@@ -89,8 +89,8 @@ public class ProductService(IDbContextFactory<ApplicationDbContext> dbFactory, T
                 NormalizedName = input.NormalizedName,
                 Category = input.Category,
                 Quantity = input.Quantity,
-                ExpiresOn = form.ExpiresOn,
-                StorageLocation = form.StorageLocation,
+                ExpiresOn = input.ExpiresOn,
+                StorageLocation = input.StorageLocation,
             });
             await db.SaveChangesAsync(ct);
             return AddProductResult.Added;
@@ -113,7 +113,7 @@ public class ProductService(IDbContextFactory<ApplicationDbContext> dbFactory, T
         ArgumentException.ThrowIfNullOrEmpty(userId);
         var input = Normalize(form);
 
-        // NotFound wins over Duplicate, so a foreign or deleted ID never reveals which names the user has.
+        // NotFound wins over Duplicate: a foreign or deleted ID is always reported as missing, whatever its new name collides with.
         if (!await OwnsAsync(userId, productId, ct))
         {
             return UpdateProductResult.NotFound;
@@ -138,8 +138,8 @@ public class ProductService(IDbContextFactory<ApplicationDbContext> dbFactory, T
             product.NormalizedName = input.NormalizedName;
             product.Category = input.Category;
             product.Quantity = input.Quantity;
-            product.ExpiresOn = form.ExpiresOn;
-            product.StorageLocation = form.StorageLocation;
+            product.ExpiresOn = input.ExpiresOn;
+            product.StorageLocation = input.StorageLocation;
             await db.SaveChangesAsync(ct);
             return UpdateProductResult.Updated;
         }
@@ -173,6 +173,7 @@ public class ProductService(IDbContextFactory<ApplicationDbContext> dbFactory, T
     public static bool IsExpiryDue(DateOnly? expiresOn, DateOnly today) => expiresOn is not null && expiresOn <= today;
 
     // Shared by add and update, so both paths validate and normalise the form the same way.
+    // Copies every field up front: the caller's form stays editable while the save awaits.
     private static ProductInput Normalize(ProductForm form)
     {
         var name = form.Name?.Trim();
@@ -192,7 +193,7 @@ public class ProductService(IDbContextFactory<ApplicationDbContext> dbFactory, T
             throw new ArgumentException($"Quantity must be at most {MaxQuantityLength} characters.", nameof(form));
         }
 
-        return new ProductInput(name, name.ToUpperInvariant(), category, quantity);
+        return new ProductInput(name, name.ToUpperInvariant(), category, quantity, form.ExpiresOn, form.StorageLocation);
     }
 
     private async Task<bool> OwnsAsync(string userId, int productId, CancellationToken ct)
@@ -214,5 +215,6 @@ public class ProductService(IDbContextFactory<ApplicationDbContext> dbFactory, T
     // "Today" is the calendar date in Poland, not in UTC.
     private DateOnly Today() => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(timeProvider.GetUtcNow(), Warsaw).DateTime);
 
-    private readonly record struct ProductInput(string Name, string NormalizedName, ProductCategory Category, string? Quantity);
+    private readonly record struct ProductInput(
+        string Name, string NormalizedName, ProductCategory Category, string? Quantity, DateOnly? ExpiresOn, StorageLocation? StorageLocation);
 }

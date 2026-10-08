@@ -55,7 +55,7 @@
     {
         if (nameInput?.Element is { } element)
         {
-            await element.FocusAsync();
+            await ElementFocus.TryFocusAsync(element);
         }
     }
 }
