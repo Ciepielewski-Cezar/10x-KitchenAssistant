@@ -1,14 +1,14 @@
-# Spike: live latency and quality of recipe generation (S-02, Phase 3)
+# Spike: live latency and quality of recipe generation (S-07)
 
 ## Purpose
 
-Phase 3 of `plan.md` is the only step that calls the real Anthropic API. It answers the open question from the roadmap's S-02 Unknowns:
+This spike is the only step that calls the real Anthropic API repeatedly (`plan.md` in this folder, roadmap S-07). It was split out of S-02 (`first-recipe-generation`, Phase 3) on 2026-10-08. It answers the open question that moved from the roadmap's S-02 Unknowns to S-07:
 
 > Can one call generate 5 full recipes within a minute, or does generation have to be split (a list of proposals first, then the full recipe)?
 
 The measurements below decide the committed `Recipes:Model` / `Recipes:Effort` defaults in `appsettings.json`. They also decide whether S-04 needs a second AI call. Budget: about 10–20 calls, well under $2.
 
-Status (2026-10-05): **smoke test passed; the 10-call measurement is deferred** until the MVP is nearly ready (deadline 2026-10-22). The single production-like call finished in 14.5 s (see [Smoke test](#smoke-test-production-like-stack-plan-step-4)), so the one-call approach looks viable, but that is one data point, not the measurement the plan asks for. Until the spike runs, the `appsettings.json` defaults (Sonnet 5.5 / low) stay as they are and plan rows 3.1–3.5 stay open.
+Status (2026-10-05, moved to S-07 on 2026-10-08): **smoke test passed; the 10-call measurement is deferred** until the MVP is nearly ready (deadline 2026-10-22). The single production-like call finished in 14.5 s (see [Smoke test](#smoke-test-production-like-stack-s-02-plan-phase-3-step-4)), so the one-call approach looks viable, but that is one data point, not the measurement the plan asks for. Until the spike runs, the `appsettings.json` defaults (Sonnet 5.5 / low) stay as they are and steps 1.1–1.5 of `plan.md` stay open. The smoke test belonged to S-02 and is kept below as the first data point.
 
 ## Runbook (you run it; the agent fills the table from your log lines)
 
@@ -51,7 +51,7 @@ If you are on a work laptop or VPN with TLS inspection, disconnect from the VPN 
 dotnet run --launch-profile https
 ```
 
-Open https://localhost:7020. Check the startup log: the warning `ANTHROPIC_API_KEY is not configured; AI recipe generation will fail until it is set.` must **not** appear. That warning's absence is the 3.2 check.
+Open https://localhost:7020. Check the startup log: the warning `ANTHROPIC_API_KEY is not configured; AI recipe generation will fail until it is set.` must **not** appear. That warning's absence is the 1.2 check.
 
 ### 5. Account and pantry
 
@@ -157,7 +157,7 @@ Rows 1–10 only (row 0 excluded).
 - **Name-fallback rate:** _TBD_ % = Σ owned-by-name / (Σ owned-by-ID + Σ owned-by-name). This is the share of owned ingredients for which the AI gave no ID and the exact-name match decided ownership.
 - **Quality:** _TBD_ (Polish throughout? steps logical? fits obiad / ≤ 30 min / 1 porcja?)
 - **Verdict:** _TBD_ — one of:
-  - **Pass**: every measured call ≤ 60 s → keep or adjust the defaults, then answer the roadmap S-02 unknown („jedno wywołanie wystarcza”).
+  - **Pass**: every measured call ≤ 60 s → keep or adjust the defaults, then answer the roadmap S-07 unknown („jedno wywołanie wystarcza”).
   - **Fail**: apply the levers below.
 - **Chosen defaults** (to commit in `appsettings.json` → `Recipes`): `Model` = _TBD_, `Effort` = _TBD_, `MaxTokens` = _TBD_.
 
@@ -196,13 +196,13 @@ Result: _TBD_
 
 ### Lever 3: stop and re-plan
 
-If neither lever fits within 60 s, stop. Re-plan the split (a list of proposals first, then the full recipe on open) together with S-04, and record that escalation in the roadmap's S-02 Unknowns.
+If neither lever fits within 60 s, stop. Re-plan the split (a list of proposals first, then the full recipe on open) together with S-04, and record that escalation in the roadmap's S-07 Unknowns.
 
 ### Schema rejection
 
 If the API rejects the nullable `productId` (`"type": ["integer", "null"]`), the agent switches it to `anyOf` in `Recipes/RecipeSchema.cs`. Re-run from call 0, because the schema changed.
 
-## Smoke test: production-like stack (plan step 4)
+## Smoke test: production-like stack (S-02 plan, Phase 3 step 4)
 
 1. Put the dev key in `.env` (git-ignored, next to `compose.yaml`) as `ANTHROPIC_API_KEY=<dev-key>`, with no quotes. Do not paste `.env` or the output of `docker compose config` into chat, because both contain secrets.
 2. Run `./scripts/local-prod.ps1`. It rebuilds the image so the new code is included. Production uses the Anthropic generator from `appsettings.json` (no fake is allowed there).

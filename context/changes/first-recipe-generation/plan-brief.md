@@ -2,6 +2,7 @@
 
 > Full plan: `context/changes/first-recipe-generation/plan.md`
 > Research: `context/changes/first-recipe-generation/research.md`
+> Scope change 2026-10-08: the measured spike (Phase 3 rows 3.1–3.5) and `spike.md` moved to `context/changes/recipe-generation-spike/` (roadmap S-07). S-02's Phase 3 is now only the smoke test.
 
 ## What & Why
 
