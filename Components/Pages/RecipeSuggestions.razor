@@ -50,6 +50,17 @@ else
         </div>
     }
 
+    @if (noneWithinMissingLimit)
+    {
+        <div class="alert alert-warning" role="alert">
+            <p class="mb-2">Żadna propozycja nie mieści się w limicie @RecipeRanker.MaxMissing brakujących składników. Spróbuj ponownie albo dodaj produkty.</p>
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <button type="button" class="btn btn-warning btn-sm" disabled="@generating" @onclick="GenerateAsync">Spróbuj ponownie</button>
+                <a href="products" class="alert-link">Przejdź do swoich produktów</a>
+            </div>
+        </div>
+    }
+
     @if (proposals is not null)
     {
         @foreach (var proposal in proposals)
@@ -57,6 +68,7 @@ else
             <article class="card mb-3">
                 <div class="card-body">
                     <h2 class="card-title h4">@proposal.Title</h2>
+                    <RecipeScoreSummary Score="proposal.Score" />
                     @if (proposal.Summary is not null)
                     {
                         <p class="card-text">@proposal.Summary</p>
@@ -91,6 +103,11 @@ else
                 </div>
             </article>
         }
+
+        @if (hiddenCount > 0)
+        {
+            <p class="text-body-secondary">@ScoreLabels.Hidden(hiddenCount)</p>
+        }
     }
 }
 
@@ -105,7 +122,9 @@ else
     private bool loadFailed;
     private bool generating;
     private bool failed;
+    private bool noneWithinMissingLimit;
     private IReadOnlyList<RecipeProposal>? proposals;
+    private int hiddenCount;
 
     private static RenderFragment IngredientBadge(IngredientStatus status) => status switch
     {
@@ -144,7 +163,9 @@ else
 
         generating = true;
         failed = false;
+        noneWithinMissingLimit = false;
         proposals = null;
+        hiddenCount = 0;
         try
         {
             var result = await RecipeService.GenerateAsync(userId!, cts.Token);
@@ -152,6 +173,10 @@ else
             {
                 case RecipeGenerationStatus.Succeeded:
                     proposals = result.Proposals;
+                    hiddenCount = result.HiddenCount;
+                    break;
+                case RecipeGenerationStatus.NoneWithinMissingLimit:
+                    noneWithinMissingLimit = true;
                     break;
                 case RecipeGenerationStatus.NoProducts:
                     // The products were removed after the page loaded.

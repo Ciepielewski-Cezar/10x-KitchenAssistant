@@ -3,7 +3,8 @@ using System.Text.Json;
 namespace KitchenAssistant.Recipes;
 
 // A zero-cost stand-in for the AI, for development only. Its deterministic answer shows every ingredient state:
-// owned, always at home, missing, and an ID that is not on the user's list (classified as missing).
+// owned, always at home, missing, and an ID that is not on the user's list (classified as missing). The last recipe has 3
+// missing ingredients, more than RecipeRanker.MaxMissing, so the ranking hides it.
 public class FakeRecipeGenerator(TimeProvider timeProvider) : IRecipeGenerator
 {
     // Long enough to see the page's progress text.
@@ -67,6 +68,21 @@ public class FakeRecipeGenerator(TimeProvider timeProvider) : IRecipeGenerator
                 [
                     "Ugotuj makaron w osolonej wodzie.",
                     "Wymieszaj makaron z pozostałymi składnikami.",
+                ]),
+            new AiRecipe(
+                $"Sos grzybowy: {first.Name}",
+                "Wymaga trzech składników, których nie masz.",
+                25,
+                [
+                    new AiIngredient(first.Id, first.Name, "200 g"),
+                    new AiIngredient(null, "śmietana 30%", "200 ml"),
+                    new AiIngredient(null, "pieczarki", "300 g"),
+                    new AiIngredient(null, "natka pietruszki", "pęczek"),
+                ],
+                [
+                    "Podsmaż pokrojone pieczarki.",
+                    "Dodaj pozostałe składniki i zalej śmietaną.",
+                    "Duś przez 10 minut i posyp natką.",
                 ]),
         ];
     }

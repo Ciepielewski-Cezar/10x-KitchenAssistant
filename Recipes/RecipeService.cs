@@ -13,8 +13,8 @@ public class RecipeService(
     TimeProvider timeProvider,
     ILogger<RecipeService> logger)
 {
-    private static readonly RecipeGenerationResult NoProducts = new(RecipeGenerationStatus.NoProducts, []);
-    private static readonly RecipeGenerationResult Failed = new(RecipeGenerationStatus.Failed, []);
+    private static readonly RecipeGenerationResult NoProducts = new(RecipeGenerationStatus.NoProducts, [], 0);
+    private static readonly RecipeGenerationResult Failed = new(RecipeGenerationStatus.Failed, [], 0);
 
     // Throws OperationCanceledException only when the caller's token is cancelled (the user left the page).
     public async Task<RecipeGenerationResult> GenerateAsync(string userId, CancellationToken ct = default)
@@ -42,12 +42,15 @@ public class RecipeService(
             var json = await generator.GenerateJsonAsync(new RecipeRequest(sent, MealParameters.Default), linked.Token);
             var recipes = RecipeResponseParser.Parse(json);
 
-            // Logged before the usability check, so a failed generation still shows what the AI returned.
-            var proposals = RecipeClassifier.Classify(recipes, products, out var stats);
+            // Classify keeps every usable recipe; Rank then filters, orders and caps them. Logged before the checks, so a
+            // failed generation still shows what the AI returned.
+            var usable = RecipeClassifier.Classify(recipes, products, out var stats);
+            var ranked = RecipeRanker.Rank(usable);
             logger.LogInformation(
-                "Recipe classification: {RecipeCount} recipes returned, {ProposalCount} proposals kept; kept ingredients owned by ID {OwnedById}, owned by name {OwnedByName}, always at home {AlwaysAtHome}, missing {Missing}; returned product IDs {ProductIds}, unknown {UnknownIds}.",
+                "Recipe classification: {RecipeCount} recipes returned, {ProposalCount} usable proposals, {HiddenCount} hidden over the missing limit; usable ingredients owned by ID {OwnedById}, owned by name {OwnedByName}, always at home {AlwaysAtHome}, missing {Missing}; returned product IDs {ProductIds}, unknown {UnknownIds}.",
                 stats.Recipes,
                 stats.Proposals,
+                ranked.HiddenCount,
                 stats.OwnedById,
                 stats.OwnedByName,
                 stats.AlwaysAtHome,
@@ -59,13 +62,21 @@ public class RecipeService(
                 logger.LogWarning("The recipe generator returned {UnknownIdCount} product IDs not on the user's list.", stats.UnknownIds);
             }
 
-            if (proposals.Count == 0)
+            // A broken answer (nothing usable) and a usable answer the limit hid entirely are different outcomes.
+            if (usable.Count == 0)
             {
                 logger.LogError("The recipe generator returned {RecipeCount} recipes, none of them usable.", recipes.Count);
                 return Failed;
             }
 
-            return new RecipeGenerationResult(RecipeGenerationStatus.Succeeded, proposals);
+            if (ranked.Proposals.Count == 0)
+            {
+                logger.LogInformation(
+                    "All {ProposalCount} usable proposals exceeded the missing limit of {MaxMissing}.", usable.Count, RecipeRanker.MaxMissing);
+                return new RecipeGenerationResult(RecipeGenerationStatus.NoneWithinMissingLimit, [], ranked.HiddenCount);
+            }
+
+            return new RecipeGenerationResult(RecipeGenerationStatus.Succeeded, ranked.Proposals, ranked.HiddenCount);
         }
         catch (OperationCanceledException ex) when (!ct.IsCancellationRequested)
         {
