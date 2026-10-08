@@ -10,6 +10,19 @@ public enum AddProductResult
     Duplicate,
 }
 
+public enum UpdateProductResult
+{
+    Updated,
+    Duplicate,
+    NotFound,
+}
+
+public enum DeleteProductResult
+{
+    Deleted,
+    NotFound,
+}
+
 public record ProductListItem(
     int Id,
     string Name,
@@ -59,6 +72,109 @@ public class ProductService(IDbContextFactory<ApplicationDbContext> dbFactory, T
     public async Task<AddProductResult> AddProductAsync(string userId, ProductForm form, CancellationToken ct = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(userId);
+        var input = Normalize(form);
+
+        if (await ExistsAsync(userId, input.Category, input.NormalizedName, excludeProductId: null, ct))
+        {
+            return AddProductResult.Duplicate;
+        }
+
+        try
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            db.Products.Add(new Product
+            {
+                UserId = userId,
+                Name = input.Name,
+                NormalizedName = input.NormalizedName,
+                Category = input.Category,
+                Quantity = input.Quantity,
+                ExpiresOn = form.ExpiresOn,
+                StorageLocation = form.StorageLocation,
+            });
+            await db.SaveChangesAsync(ct);
+            return AddProductResult.Added;
+        }
+        catch (DbUpdateException)
+        {
+            // Two adds may have raced past the check, with the unique index catching the second one.
+            if (await ExistsAsync(userId, input.Category, input.NormalizedName, excludeProductId: null, ct))
+            {
+                return AddProductResult.Duplicate;
+            }
+
+            throw;
+        }
+    }
+
+    // Opens three contexts in order: ownership check, duplicate check, write.
+    public async Task<UpdateProductResult> UpdateProductAsync(string userId, int productId, ProductForm form, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(userId);
+        var input = Normalize(form);
+
+        // NotFound wins over Duplicate, so a foreign or deleted ID never reveals which names the user has.
+        if (!await OwnsAsync(userId, productId, ct))
+        {
+            return UpdateProductResult.NotFound;
+        }
+
+        if (await ExistsAsync(userId, input.Category, input.NormalizedName, productId, ct))
+        {
+            return UpdateProductResult.Duplicate;
+        }
+
+        try
+        {
+            // The write re-filters by owner, so a product deleted since the check is NotFound.
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            var product = await db.Products.SingleOrDefaultAsync(p => p.Id == productId && p.UserId == userId, ct);
+            if (product is null)
+            {
+                return UpdateProductResult.NotFound;
+            }
+
+            product.Name = input.Name;
+            product.NormalizedName = input.NormalizedName;
+            product.Category = input.Category;
+            product.Quantity = input.Quantity;
+            product.ExpiresOn = form.ExpiresOn;
+            product.StorageLocation = form.StorageLocation;
+            await db.SaveChangesAsync(ct);
+            return UpdateProductResult.Updated;
+        }
+        catch (DbUpdateException)
+        {
+            // Either the row was deleted after the load (concurrency) or a rival took the name (unique index).
+            if (!await OwnsAsync(userId, productId, ct))
+            {
+                return UpdateProductResult.NotFound;
+            }
+
+            if (await ExistsAsync(userId, input.Category, input.NormalizedName, productId, ct))
+            {
+                return UpdateProductResult.Duplicate;
+            }
+
+            throw;
+        }
+    }
+
+    public async Task<DeleteProductResult> DeleteProductAsync(string userId, int productId, CancellationToken ct = default)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(userId);
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var deleted = await db.Products
+            .Where(p => p.Id == productId && p.UserId == userId)
+            .ExecuteDeleteAsync(ct);
+        return deleted > 0 ? DeleteProductResult.Deleted : DeleteProductResult.NotFound;
+    }
+
+    public static bool IsExpiryDue(DateOnly? expiresOn, DateOnly today) => expiresOn is not null && expiresOn <= today;
+
+    // Shared by add and update, so both paths validate and normalise the form the same way.
+    private static ProductInput Normalize(ProductForm form)
+    {
         var name = form.Name?.Trim();
         if (string.IsNullOrEmpty(name) || name.Length > MaxNameLength)
         {
@@ -76,50 +192,27 @@ public class ProductService(IDbContextFactory<ApplicationDbContext> dbFactory, T
             throw new ArgumentException($"Quantity must be at most {MaxQuantityLength} characters.", nameof(form));
         }
 
-        var normalizedName = name.ToUpperInvariant();
-
-        if (await ExistsAsync(userId, category, normalizedName, ct))
-        {
-            return AddProductResult.Duplicate;
-        }
-
-        try
-        {
-            await using var db = await dbFactory.CreateDbContextAsync(ct);
-            db.Products.Add(new Product
-            {
-                UserId = userId,
-                Name = name,
-                NormalizedName = normalizedName,
-                Category = category,
-                Quantity = quantity,
-                ExpiresOn = form.ExpiresOn,
-                StorageLocation = form.StorageLocation,
-            });
-            await db.SaveChangesAsync(ct);
-            return AddProductResult.Added;
-        }
-        catch (DbUpdateException)
-        {
-            // Two adds may have raced past the check, with the unique index catching the second one.
-            if (await ExistsAsync(userId, category, normalizedName, ct))
-            {
-                return AddProductResult.Duplicate;
-            }
-
-            throw;
-        }
+        return new ProductInput(name, name.ToUpperInvariant(), category, quantity);
     }
 
-    public static bool IsExpiryDue(DateOnly? expiresOn, DateOnly today) => expiresOn is not null && expiresOn <= today;
+    private async Task<bool> OwnsAsync(string userId, int productId, CancellationToken ct)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        return await db.Products.AnyAsync(p => p.Id == productId && p.UserId == userId, ct);
+    }
 
-    private async Task<bool> ExistsAsync(string userId, ProductCategory category, string normalizedName, CancellationToken ct)
+    // excludeProductId skips the product being updated, so keeping or re-casing its own name is not a duplicate.
+    private async Task<bool> ExistsAsync(string userId, ProductCategory category, string normalizedName, int? excludeProductId, CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         return await db.Products.AnyAsync(
-            p => p.UserId == userId && p.Category == category && p.NormalizedName == normalizedName, ct);
+            p => p.UserId == userId && p.Category == category && p.NormalizedName == normalizedName
+                && (excludeProductId == null || p.Id != excludeProductId),
+            ct);
     }
 
     // "Today" is the calendar date in Poland, not in UTC.
     private DateOnly Today() => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(timeProvider.GetUtcNow(), Warsaw).DateTime);
+
+    private readonly record struct ProductInput(string Name, string NormalizedName, ProductCategory Category, string? Quantity);
 }
