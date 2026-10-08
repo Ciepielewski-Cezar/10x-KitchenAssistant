@@ -248,26 +248,26 @@ None. No schema or persisted data changes.
 
 #### Automated
 
-- [x] 1.1 Solution builds without warnings in touched files: `dotnet build`
-- [x] 1.2 All tests pass, including the new ranker, score and label tests: `dotnet test`
-- [x] 1.3 No EF model change: `dotnet ef migrations has-pending-model-changes` exits 0
-- [x] 1.4 Rendered system prompt is unchanged (asserted in `RecipePromptTests`)
+- [x] 1.1 Solution builds without warnings in touched files: `dotnet build` — 0708d80
+- [x] 1.2 All tests pass, including the new ranker, score and label tests: `dotnet test` — 0708d80
+- [x] 1.3 No EF model change: `dotnet ef migrations has-pending-model-changes` exits 0 — 0708d80
+- [x] 1.4 Rendered system prompt is unchanged (asserted in `RecipePromptTests`) — 0708d80
 
 #### Manual
 
-- [x] 1.5 Review that no score, missing count or order value is read from AI output
+- [x] 1.5 Review that no score, missing count or order value is read from AI output — 0708d80
 
 ### Phase 2: Score on the page
 
 #### Automated
 
-- [ ] 2.1 Solution builds: `dotnet build`
-- [ ] 2.2 All tests pass: `dotnet test`
-- [ ] 2.3 No colour literals in touched UI files
+- [x] 2.1 Solution builds: `dotnet build`
+- [x] 2.2 All tests pass: `dotnet test`
+- [x] 2.3 No colour literals in touched UI files
 
 #### Manual
 
-- [ ] 2.4 Fake generator: ranked proposals with correct scores and the „Ukryto 1 propozycję” note
-- [ ] 2.5 All-hidden state shows the warning, retry and product link
-- [ ] 2.6 `/dev/ui` shows the four `RecipeScoreSummary` states at phone width
-- [ ] 2.7 Existing states still work: no products, failure with retry, loading spinner
+- [x] 2.4 Fake generator: ranked proposals with correct scores and the „Ukryto 1 propozycję” note
+- [x] 2.5 All-hidden state shows the warning, retry and product link
+- [x] 2.6 `/dev/ui` shows the four `RecipeScoreSummary` states at phone width
+- [x] 2.7 Existing states still work: no products, failure with retry, loading spinner
