@@ -65,43 +65,7 @@ else
     {
         @foreach (var proposal in proposals)
         {
-            <article class="card mb-3">
-                <div class="card-body">
-                    <h2 class="card-title h4">@proposal.Title</h2>
-                    <RecipeScoreSummary Score="proposal.Score" />
-                    @if (proposal.Summary is not null)
-                    {
-                        <p class="card-text">@proposal.Summary</p>
-                    }
-                    @if (proposal.PrepTimeMinutes is { } minutes)
-                    {
-                        <p class="card-text text-muted">ok. @minutes min</p>
-                    }
-
-                    <h3 class="h6">Składniki</h3>
-                    <ul class="list-group mb-3">
-                        @foreach (var ingredient in proposal.Ingredients)
-                        {
-                            <li class="list-group-item">
-                                @ingredient.Name
-                                @if (ingredient.Amount is not null)
-                                {
-                                    <span class="ms-2 text-muted">@ingredient.Amount</span>
-                                }
-                                @IngredientBadge(ingredient.Status)
-                            </li>
-                        }
-                    </ul>
-
-                    <h3 class="h6">Przygotowanie</h3>
-                    <ol class="mb-0">
-                        @foreach (var step in proposal.Steps)
-                        {
-                            <li>@step</li>
-                        }
-                    </ol>
-                </div>
-            </article>
+            <RecipeCard @key="proposal" Proposal="proposal" />
         }
 
         @if (hiddenCount > 0)
@@ -125,13 +89,6 @@ else
     private bool noneWithinMissingLimit;
     private IReadOnlyList<RecipeProposal>? proposals;
     private int hiddenCount;
-
-    private static RenderFragment IngredientBadge(IngredientStatus status) => status switch
-    {
-        IngredientStatus.Owned => @<span class="badge text-bg-success ms-2">Masz</span>,
-        IngredientStatus.AlwaysAtHome => @<span class="badge text-bg-secondary ms-2">Zawsze w domu</span>,
-        _ => @<span class="badge text-bg-warning ms-2">Brakuje</span>,
-    };
 
     protected override async Task OnInitializedAsync()
     {

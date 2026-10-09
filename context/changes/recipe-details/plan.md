@@ -234,28 +234,28 @@ None. No schema or data change.
 
 #### Automated
 
-- [x] 1.1 Build succeeds: `dotnet build`
-- [x] 1.2 Label tests pass: `dotnet test --filter "FullyQualifiedName~ScoreLabelsTests"`
-- [x] 1.3 Full test suite passes: `dotnet test`
-- [x] 1.4 No literal colours in the new and changed views (CLAUDE.md grep scan)
+- [x] 1.1 Build succeeds: `dotnet build` — 130e7f2
+- [x] 1.2 Label tests pass: `dotnet test --filter "FullyQualifiedName~ScoreLabelsTests"` — 130e7f2
+- [x] 1.3 Full test suite passes: `dotnet test` — 130e7f2
+- [x] 1.4 No literal colours in the new and changed views (CLAUDE.md grep scan) — 130e7f2
 
 #### Manual
 
-- [x] 1.5 `/dev/ui` shows all three badges and the three `RecipeCard` states correctly
-- [x] 1.6 `/dev/ui` cards wrap at about 375 px without horizontal scroll
+- [x] 1.5 `/dev/ui` shows all three badges and the three `RecipeCard` states correctly — 130e7f2
+- [x] 1.6 `/dev/ui` cards wrap at about 375 px without horizontal scroll — 130e7f2
 
 ### Phase 2: Details on /recipes
 
 #### Automated
 
-- [ ] 2.1 Build succeeds: `dotnet build`
-- [ ] 2.2 Full test suite passes: `dotnet test`
-- [ ] 2.3 No literal colours in the changed page (CLAUDE.md grep scan)
+- [x] 2.1 Build succeeds: `dotnet build`
+- [x] 2.2 Full test suite passes: `dotnet test`
+- [x] 2.3 No literal colours in the changed page (CLAUDE.md grep scan)
 
 #### Manual
 
-- [ ] 2.4 Generated proposals are listed collapsed with score, summary, time and a matching „Do kupienia” line
-- [ ] 2.5 „Pokaż przepis” / „Ukryj przepis” expands and collapses a card in place, and two cards can be open at once
-- [ ] 2.6 Generating again shows the new batch collapsed
-- [ ] 2.7 Other page states are unchanged (no products, failure, all over limit, hidden note)
-- [ ] 2.8 Collapsed list and expanded card read cleanly at about 375 px
+- [x] 2.4 Generated proposals are listed collapsed with score, summary, time and a matching „Do kupienia” line
+- [x] 2.5 „Pokaż przepis” / „Ukryj przepis” expands and collapses a card in place, and two cards can be open at once
+- [x] 2.6 Generating again shows the new batch collapsed
+- [x] 2.7 Other page states are unchanged (no products, failure, all over limit, hidden note)
+- [x] 2.8 Collapsed list and expanded card read cleanly at about 375 px
