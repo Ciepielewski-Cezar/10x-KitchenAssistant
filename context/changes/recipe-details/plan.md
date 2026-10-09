@@ -248,14 +248,14 @@ None. No schema or data change.
 
 #### Automated
 
-- [x] 2.1 Build succeeds: `dotnet build`
-- [x] 2.2 Full test suite passes: `dotnet test`
-- [x] 2.3 No literal colours in the changed page (CLAUDE.md grep scan)
+- [x] 2.1 Build succeeds: `dotnet build` — 7d7b09a
+- [x] 2.2 Full test suite passes: `dotnet test` — 7d7b09a
+- [x] 2.3 No literal colours in the changed page (CLAUDE.md grep scan) — 7d7b09a
 
 #### Manual
 
-- [x] 2.4 Generated proposals are listed collapsed with score, summary, time and a matching „Do kupienia” line
-- [x] 2.5 „Pokaż przepis” / „Ukryj przepis” expands and collapses a card in place, and two cards can be open at once
-- [x] 2.6 Generating again shows the new batch collapsed
-- [x] 2.7 Other page states are unchanged (no products, failure, all over limit, hidden note)
-- [x] 2.8 Collapsed list and expanded card read cleanly at about 375 px
+- [x] 2.4 Generated proposals are listed collapsed with score, summary, time and a matching „Do kupienia” line — 7d7b09a
+- [x] 2.5 „Pokaż przepis” / „Ukryj przepis” expands and collapses a card in place, and two cards can be open at once — 7d7b09a
+- [x] 2.6 Generating again shows the new batch collapsed — 7d7b09a
+- [x] 2.7 Other page states are unchanged (no products, failure, all over limit, hidden note) — 7d7b09a
+- [x] 2.8 Collapsed list and expanded card read cleanly at about 375 px — 7d7b09a
