@@ -4,7 +4,9 @@ namespace KitchenAssistant.Recipes;
 
 // A zero-cost stand-in for the AI, for development only. Its deterministic answer shows every ingredient state:
 // owned, always at home, missing, and an ID that is not on the user's list (classified as missing). The last recipe has 3
-// missing ingredients, more than RecipeRanker.MaxMissing, so the ranking hides it.
+// missing ingredients, more than RecipeRanker.MaxMissing, so the ranking hides it. The preparation times (20, 30, none, 25)
+// demonstrate the time limit: under any limit the recipe without a time is hidden, "do 15 minut" hides every recipe within
+// the missing limit, and "bez limitu" hides none for time. The output ignores the meal parameters.
 public class FakeRecipeGenerator(TimeProvider timeProvider) : IRecipeGenerator
 {
     // Long enough to see the page's progress text.

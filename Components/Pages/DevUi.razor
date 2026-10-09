@@ -53,6 +53,20 @@
     </section>
 
     <section class="mb-4">
+        <h2>SegmentedControl</h2>
+        @* Static SSR: the states render, but clicking an option changes nothing on the server. *@
+        <h3 class="h6">Default, first option selected</h3>
+        <SegmentedControl TValue="MealType" Name="dev-meal-type" Legend="Rodzaj posiłku"
+                          Options="MealLabels.MealTypeChoices" Value="MealType.Breakfast" />
+        <h3 class="h6">Non-first option selected</h3>
+        <SegmentedControl TValue="int?" Name="dev-max-prep" Legend="Maksymalny czas przygotowania"
+                          Options="MealLabels.MaxPrepTimeChoices" Value="null" />
+        <h3 class="h6">Disabled</h3>
+        <SegmentedControl TValue="int" Name="dev-servings" Legend="Liczba porcji"
+                          Options="MealLabels.ServingsChoices" Value="2" Disabled="true" />
+    </section>
+
+    <section class="mb-4">
         <h2>StatusMessage</h2>
         <StatusMessage Kind="StatusKind.Success" Message="Twój profil został zaktualizowany." />
         <StatusMessage Kind="StatusKind.Error" Message="Nie udało się zapisać zmian. Spróbuj ponownie." />

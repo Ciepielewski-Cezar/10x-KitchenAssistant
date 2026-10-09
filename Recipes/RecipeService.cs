@@ -13,12 +13,18 @@ public class RecipeService(
     TimeProvider timeProvider,
     ILogger<RecipeService> logger)
 {
-    private static readonly RecipeGenerationResult NoProducts = new(RecipeGenerationStatus.NoProducts, [], 0);
-    private static readonly RecipeGenerationResult Failed = new(RecipeGenerationStatus.Failed, [], 0);
+    private static readonly RecipeGenerationResult NoProducts = new(RecipeGenerationStatus.NoProducts, [], 0, 0);
+    private static readonly RecipeGenerationResult Failed = new(RecipeGenerationStatus.Failed, [], 0, 0);
 
-    // Throws OperationCanceledException only when the caller's token is cancelled (the user left the page).
-    public async Task<RecipeGenerationResult> GenerateAsync(string userId, CancellationToken ct = default)
+    // Throws ArgumentOutOfRangeException, before any I/O, when a meal parameter is outside MealParameters' option lists.
+    // Otherwise throws OperationCanceledException only when the caller's token is cancelled (the user left the page).
+    public async Task<RecipeGenerationResult> GenerateAsync(string userId, MealParameters meal, CancellationToken ct = default)
     {
+        if (!meal.IsAllowed)
+        {
+            throw new ArgumentOutOfRangeException(nameof(meal), meal, "The meal parameters are outside the allowed options.");
+        }
+
         var products = await productService.GetProductsAsync(userId, ct);
         IReadOnlyList<ProductListItem> all = [.. products.UseFirst, .. products.Stored];
         if (all.Count == 0)
@@ -39,18 +45,24 @@ public class RecipeService(
         using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, deadline.Token);
         try
         {
-            var json = await generator.GenerateJsonAsync(new RecipeRequest(sent, MealParameters.Default), linked.Token);
+            var json = await generator.GenerateJsonAsync(new RecipeRequest(sent, meal), linked.Token);
             var recipes = RecipeResponseParser.Parse(json);
 
             // Classify keeps every usable recipe; Rank then filters, orders and caps them. Logged before the checks, so a
-            // failed generation still shows what the AI returned.
+            // failed generation still shows what the AI returned. The no-time count is logged whatever the limit, to show
+            // whether the AI omits preparation times.
             var usable = RecipeClassifier.Classify(recipes, products, out var stats);
-            var ranked = RecipeRanker.Rank(usable);
+            var ranked = RecipeRanker.Rank(usable, meal.MaxPrepMinutes);
             logger.LogInformation(
-                "Recipe classification: {RecipeCount} recipes returned, {ProposalCount} usable proposals, {HiddenCount} hidden over the missing limit; usable ingredients owned by ID {OwnedById}, owned by name {OwnedByName}, always at home {AlwaysAtHome}, missing {Missing}; returned product IDs {ProductIds}, unknown {UnknownIds}.",
+                "Recipe classification: {RecipeCount} recipes returned, {ProposalCount} usable proposals, {HiddenCount} hidden over the missing limit, {HiddenOverTimeCount} hidden over the time limit, {NoPrepTimeCount} usable without a preparation time; meal {MealType}, max prep {MaxPrepMinutes}, {Servings} servings; usable ingredients owned by ID {OwnedById}, owned by name {OwnedByName}, always at home {AlwaysAtHome}, missing {Missing}; returned product IDs {ProductIds}, unknown {UnknownIds}.",
                 stats.Recipes,
                 stats.Proposals,
                 ranked.HiddenCount,
+                ranked.HiddenOverTimeCount,
+                usable.Count(p => p.PrepTimeMinutes is null),
+                meal.MealType,
+                meal.MaxPrepMinutes,
+                meal.Servings,
                 stats.OwnedById,
                 stats.OwnedByName,
                 stats.AlwaysAtHome,
@@ -62,7 +74,7 @@ public class RecipeService(
                 logger.LogWarning("The recipe generator returned {UnknownIdCount} product IDs not on the user's list.", stats.UnknownIds);
             }
 
-            // A broken answer (nothing usable) and a usable answer the limit hid entirely are different outcomes.
+            // A broken answer (nothing usable) and a usable answer the limits hid entirely are different outcomes.
             if (usable.Count == 0)
             {
                 logger.LogError("The recipe generator returned {RecipeCount} recipes, none of them usable.", recipes.Count);
@@ -72,11 +84,16 @@ public class RecipeService(
             if (ranked.Proposals.Count == 0)
             {
                 logger.LogInformation(
-                    "All {ProposalCount} usable proposals exceeded the missing limit of {MaxMissing}.", usable.Count, RecipeRanker.MaxMissing);
-                return new RecipeGenerationResult(RecipeGenerationStatus.NoneWithinMissingLimit, [], ranked.HiddenCount);
+                    "All {ProposalCount} usable proposals were hidden: {HiddenCount} over the missing limit of {MaxMissing}, {HiddenOverTimeCount} over the time limit {MaxPrepMinutes}.",
+                    usable.Count,
+                    ranked.HiddenCount,
+                    RecipeRanker.MaxMissing,
+                    ranked.HiddenOverTimeCount,
+                    meal.MaxPrepMinutes);
+                return new RecipeGenerationResult(RecipeGenerationStatus.NoneWithinLimits, [], ranked.HiddenCount, ranked.HiddenOverTimeCount);
             }
 
-            return new RecipeGenerationResult(RecipeGenerationStatus.Succeeded, ranked.Proposals, ranked.HiddenCount);
+            return new RecipeGenerationResult(RecipeGenerationStatus.Succeeded, ranked.Proposals, ranked.HiddenCount, ranked.HiddenOverTimeCount);
         }
         catch (OperationCanceledException ex) when (!ct.IsCancellationRequested)
         {

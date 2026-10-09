@@ -78,6 +78,25 @@ public class ScoreLabelsTests
         Assert.Equal(expected, ScoreLabels.Hidden(count));
     }
 
+    [Theory]
+    [InlineData(1, "Ukryto 1 propozycję, która trwa dłużej niż 15 minut lub nie podaje czasu")]
+    [InlineData(2, "Ukryto 2 propozycje, które trwają dłużej niż 15 minut lub nie podają czasu")]
+    [InlineData(5, "Ukryto 5 propozycji, które trwają dłużej niż 15 minut lub nie podają czasu")]
+    [InlineData(12, "Ukryto 12 propozycji, które trwają dłużej niż 15 minut lub nie podają czasu")]
+    [InlineData(22, "Ukryto 22 propozycje, które trwają dłużej niż 15 minut lub nie podają czasu")]
+    public void HiddenOverTime_uses_polish_plural_forms(int count, string expected)
+    {
+        Assert.Equal(expected, ScoreLabels.HiddenOverTime(count, 15));
+    }
+
+    [Fact]
+    public void HiddenOverTime_names_the_limit()
+    {
+        Assert.Equal(
+            "Ukryto 1 propozycję, która trwa dłużej niż 30 minut lub nie podaje czasu",
+            ScoreLabels.HiddenOverTime(1, 30));
+    }
+
     private static ProposalIngredient Owned(string name) => new(name, null, IngredientStatus.Owned, 1, null);
 
     private static ProposalIngredient AlwaysAtHome(string name) => new(name, null, IngredientStatus.AlwaysAtHome, null, null);

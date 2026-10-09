@@ -5,8 +5,8 @@ namespace KitchenAssistant.Tests.Recipes;
 public class RecipeRankerTests
 {
     // The ranker reads only the score, so the proposals carry no ingredients.
-    private static RecipeProposal Proposal(string title, int missing, int useFirst = 0, int owned = 1) =>
-        new(title, null, null, [], ["Usmaż."], new RecipeScore(owned, owned + missing, missing, useFirst));
+    private static RecipeProposal Proposal(string title, int missing, int useFirst = 0, int owned = 1, int? minutes = null) =>
+        new(title, null, minutes, [], ["Usmaż."], new RecipeScore(owned, owned + missing, missing, useFirst));
 
     private static IEnumerable<string> Titles(RankedProposals ranked) => ranked.Proposals.Select(p => p.Title);
 
@@ -121,5 +121,83 @@ public class RecipeRankerTests
 
         Assert.Empty(ranked.Proposals);
         Assert.Equal(0, ranked.HiddenCount);
+        Assert.Equal(0, ranked.HiddenOverTimeCount);
+    }
+
+    [Fact]
+    public void Time_equal_to_the_limit_is_kept_and_one_minute_over_is_hidden_and_counted()
+    {
+        var ranked = RecipeRanker.Rank(
+        [
+            Proposal("Za długo", missing: 0, minutes: 31),
+            Proposal("Na styk", missing: 0, minutes: 30),
+        ],
+            maxPrepMinutes: 30);
+
+        Assert.Equal(new[] { "Na styk" }, Titles(ranked));
+        Assert.Equal(0, ranked.HiddenCount);
+        Assert.Equal(1, ranked.HiddenOverTimeCount);
+    }
+
+    [Fact]
+    public void No_time_is_hidden_when_a_limit_is_set()
+    {
+        var ranked = RecipeRanker.Rank(
+        [
+            Proposal("Bez czasu", missing: 0, minutes: null),
+            Proposal("Szybki", missing: 0, minutes: 10),
+        ],
+            maxPrepMinutes: 15);
+
+        Assert.Equal(new[] { "Szybki" }, Titles(ranked));
+        Assert.Equal(1, ranked.HiddenOverTimeCount);
+    }
+
+    [Fact]
+    public void No_limit_hides_nothing_for_time_including_no_time()
+    {
+        var ranked = RecipeRanker.Rank(
+        [
+            Proposal("Bez czasu", missing: 0, minutes: null),
+            Proposal("Długi", missing: 0, minutes: 240),
+        ],
+            maxPrepMinutes: null);
+
+        Assert.Equal(new[] { "Bez czasu", "Długi" }, Titles(ranked));
+        Assert.Equal(0, ranked.HiddenOverTimeCount);
+    }
+
+    [Fact]
+    public void A_proposal_over_both_limits_counts_only_as_over_the_missing_limit()
+    {
+        var ranked = RecipeRanker.Rank(
+        [
+            Proposal("Trzy braki i za długo", missing: 3, minutes: 90),
+            Proposal("Trzy braki bez czasu", missing: 3, minutes: null),
+            Proposal("Za długo", missing: 0, minutes: 90),
+            Proposal("W limitach", missing: 0, minutes: 20),
+        ],
+            maxPrepMinutes: 30);
+
+        Assert.Equal(new[] { "W limitach" }, Titles(ranked));
+        Assert.Equal(2, ranked.HiddenCount);
+        Assert.Equal(1, ranked.HiddenOverTimeCount);
+    }
+
+    [Fact]
+    public void Cap_applies_after_both_filters()
+    {
+        var proposals = Enumerable.Range(1, 6).Select(n => Proposal($"Przepis {n}", missing: 1, minutes: 15))
+            .Prepend(Proposal("Za długo, bez braków", missing: 0, minutes: 60))
+            .Prepend(Proposal("Trzy braki", missing: 3, minutes: 10))
+            .ToList();
+
+        var ranked = RecipeRanker.Rank(proposals, maxPrepMinutes: 30);
+
+        Assert.Equal(
+            new[] { "Przepis 1", "Przepis 2", "Przepis 3", "Przepis 4", "Przepis 5" },
+            Titles(ranked));
+        Assert.Equal(1, ranked.HiddenCount);
+        Assert.Equal(1, ranked.HiddenOverTimeCount);
     }
 }

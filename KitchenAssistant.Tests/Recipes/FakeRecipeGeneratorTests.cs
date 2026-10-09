@@ -52,6 +52,20 @@ public class FakeRecipeGeneratorTests
     }
 
     [Fact]
+    public async Task Ranking_with_the_default_time_limit_also_hides_the_recipe_without_a_time()
+    {
+        var recipes = RecipeResponseParser.Parse(await GenerateAsync(Items));
+        var proposals = RecipeClassifier.Classify(recipes, new ProductList(Items[..2], Items[2..]));
+
+        var ranked = RecipeRanker.Rank(proposals, MealParameters.Default.MaxPrepMinutes);
+
+        Assert.Equal(1, ranked.HiddenCount);
+        Assert.Equal(1, ranked.HiddenOverTimeCount);
+        Assert.Equal(proposals.Take(2), ranked.Proposals);
+        Assert.Null(proposals[2].PrepTimeMinutes);
+    }
+
+    [Fact]
     public async Task Output_includes_one_id_not_in_the_request()
     {
         var recipes = RecipeResponseParser.Parse(await GenerateAsync(Items));
