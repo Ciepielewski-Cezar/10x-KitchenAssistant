@@ -54,7 +54,7 @@ public class RecipeService(
             var usable = RecipeClassifier.Classify(recipes, products, out var stats);
             var ranked = RecipeRanker.Rank(usable, meal.MaxPrepMinutes);
             logger.LogInformation(
-                "Recipe classification: {RecipeCount} recipes returned, {ProposalCount} usable proposals, {HiddenCount} hidden over the missing limit, {HiddenOverTimeCount} hidden over the time limit, {NoPrepTimeCount} usable without a preparation time; meal {MealType}, max {MaxPrepMinutes} min, {Servings} servings; usable ingredients owned by ID {OwnedById}, owned by name {OwnedByName}, always at home {AlwaysAtHome}, missing {Missing}; returned product IDs {ProductIds}, unknown {UnknownIds}.",
+                "Recipe classification: {RecipeCount} recipes returned, {ProposalCount} usable proposals, {HiddenCount} hidden over the missing limit, {HiddenOverTimeCount} hidden over the time limit, {NoPrepTimeCount} usable without a preparation time; meal {MealType}, max prep {MaxPrepMinutes}, {Servings} servings; usable ingredients owned by ID {OwnedById}, owned by name {OwnedByName}, always at home {AlwaysAtHome}, missing {Missing}; returned product IDs {ProductIds}, unknown {UnknownIds}.",
                 stats.Recipes,
                 stats.Proposals,
                 ranked.HiddenCount,
@@ -84,7 +84,7 @@ public class RecipeService(
             if (ranked.Proposals.Count == 0)
             {
                 logger.LogInformation(
-                    "All {ProposalCount} usable proposals were hidden: {HiddenCount} over the missing limit of {MaxMissing}, {HiddenOverTimeCount} over the time limit of {MaxPrepMinutes} min.",
+                    "All {ProposalCount} usable proposals were hidden: {HiddenCount} over the missing limit of {MaxMissing}, {HiddenOverTimeCount} over the time limit {MaxPrepMinutes}.",
                     usable.Count,
                     ranked.HiddenCount,
                     RecipeRanker.MaxMissing,

@@ -18,7 +18,7 @@ public record MealParameters(MealType MealType, int? MaxPrepMinutes, int Serving
     public static MealParameters Default { get; } = new(MealType.Dinner, 30, 1);
 
     // The PRD's small, fixed parameter set: the page renders these options and RecipeService rejects anything else.
-    public static IReadOnlyList<MealType> MealTypeOptions { get; } = Enum.GetValues<MealType>();
+    public static IReadOnlyList<MealType> MealTypeOptions { get; } = [.. Enum.GetValues<MealType>()];
 
     public static IReadOnlyList<int?> MaxPrepMinutesOptions { get; } = [15, 30, 60, null];
 

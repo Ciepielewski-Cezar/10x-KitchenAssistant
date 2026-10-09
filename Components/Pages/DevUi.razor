@@ -57,13 +57,13 @@
         @* Static SSR: the states render, but clicking an option changes nothing on the server. *@
         <h3 class="h6">Default, first option selected</h3>
         <SegmentedControl TValue="MealType" Name="dev-meal-type" Legend="Rodzaj posiłku"
-                          Options="mealTypeOptions" Value="MealType.Breakfast" />
+                          Options="MealLabels.MealTypeChoices" Value="MealType.Breakfast" />
         <h3 class="h6">Non-first option selected</h3>
         <SegmentedControl TValue="int?" Name="dev-max-prep" Legend="Maksymalny czas przygotowania"
-                          Options="maxPrepMinutesOptions" Value="null" />
+                          Options="MealLabels.MaxPrepTimeChoices" Value="null" />
         <h3 class="h6">Disabled</h3>
         <SegmentedControl TValue="int" Name="dev-servings" Legend="Liczba porcji"
-                          Options="servingsOptions" Value="2" Disabled="true" />
+                          Options="MealLabels.ServingsChoices" Value="2" Disabled="true" />
     </section>
 
     <section class="mb-4">
@@ -114,15 +114,6 @@
     private bool isDevelopment;
     private readonly ErrorModel errorModel = new();
     private EditContext errorContext = default!;
-
-    private static readonly IReadOnlyList<(MealType Value, string Label)> mealTypeOptions =
-        [.. MealParameters.MealTypeOptions.Select(m => (m, MealLabels.For(m)))];
-
-    private static readonly IReadOnlyList<(int? Value, string Label)> maxPrepMinutesOptions =
-        [.. MealParameters.MaxPrepMinutesOptions.Select(m => (m, MealLabels.ForMaxPrepTime(m)))];
-
-    private static readonly IReadOnlyList<(int Value, string Label)> servingsOptions =
-        [.. MealParameters.ServingsOptions.Select(s => (s, s.ToString()))];
 
     private static readonly RecipeProposal collapsedWithMissing = Proposal(
         "Omlet ze szpinakiem",
