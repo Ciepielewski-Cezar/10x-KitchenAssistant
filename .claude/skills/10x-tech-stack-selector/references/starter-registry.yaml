@@ -635,7 +635,38 @@ starters:
     cmd_template: "curl -s https://start.spring.io/starter.tgz -d dependencies=web,devtools -d type=maven-project -d javaVersion=21 -d groupId=com.example -d artifactId={name} | tar -xzf -"
     deployment_defaults: [fly, render, aws-ecs, self-host]
     bootstrapper_confidence: verified
-    alternatives_to_consider: []
+    alternatives_to_consider: [quarkus]
+
+  quarkus:
+    name: "Quarkus"
+    language_family: java
+    description: >
+      Cloud-native Java framework backed by Red Hat. Build-time DI and config, fast startup and low
+      memory (JVM or GraalVM native), live-reload dev mode, and an extension catalog for REST, data,
+      scheduling, messaging, and LLM integrations.
+    fit:
+      - "Java developer who wants a lighter, container-first alternative to Spring Boot"
+      - "API or microservice where startup time and memory footprint matter"
+    gotchas:
+      - "smaller community than Spring Boot; fewer third-party answers for edge cases"
+      - "build-time processing means some reflection-heavy libraries need an extension or native config"
+      - "generated pom.xml uses artifactId `app`; rename it to the project name after scaffolding"
+    agent_friendly:
+      typed: true
+      convention_based: true
+      popular_in_training: true
+      well_documented: true
+    stars: 15919
+    last_updated: 2026-10-03
+    docs_url: "https://quarkus.io/guides/"
+    for: [api, backend, enterprise, microservice]
+    tags: [java, cloud-native, microservice]
+    toolchain:
+      package_manager: maven
+    cmd_template: 'curl -sSfL -o quarkus.zip "https://code.quarkus.io/d?g=com.example&a=app&b=MAVEN&j=21&e=rest-jackson" && unzip -q quarkus.zip && rm quarkus.zip && mv app {name}'
+    deployment_defaults: [fly, render, google-cloud-run, self-host]
+    bootstrapper_confidence: first-class
+    alternatives_to_consider: [spring]
 
   # === PHP family ===
 
@@ -896,37 +927,4 @@ starters:
     cmd_template: "dotnet new webapi -n {name} --no-restore"
     deployment_defaults: [azure-app-service, fly, self-host]
     bootstrapper_confidence: verified
-    alternatives_to_consider: [dotnet-blazor]
-
-  dotnet-blazor:
-    name: ".NET Blazor Web App (Identity + EF Core)"
-    language_family: dotnet
-    description: >
-      Official ASP.NET Core Blazor Web App template with interactive server rendering and
-      Individual accounts: ASP.NET Core Identity (register, login, password reset, account
-      management pages) + Entity Framework Core with migrations on SQL Server (LocalDB locally,
-      Azure SQL Database in production). Full-stack C# — UI, auth, and data access in one project.
-    fit:
-      - ".NET developer building full-stack web app with UI in C#"
-      - "email/password auth required from day 1"
-      - "single deployable project; no separate SPA frontend"
-    gotchas:
-      - "project name / root namespace is fixed in cmd_template (-n) because {name} is the scaffold output dir"
-      - "LocalDB is Windows-only; on macOS/Linux run SQL Server in Docker and override the connection string"
-      - "Identity pages use static SSR; interactive components need explicit render modes"
-    agent_friendly:
-      typed: true
-      convention_based: true
-      popular_in_training: true
-      well_documented: true
-    stars: 35000
-    last_updated: 2026-04-18
-    docs_url: "https://learn.microsoft.com/aspnet/core/blazor"
-    for: [web-app, full-stack, saas]
-    tags: [csharp, blazor, identity, efcore, sqlserver, microsoft]
-    toolchain:
-      package_manager: dotnet
-    cmd_template: "dotnet new blazor --auth Individual --interactivity Server --use-local-db -o {name} -n KitchenAssistant --no-restore"
-    deployment_defaults: [azure-app-service, fly, self-host]
-    bootstrapper_confidence: first-class
-    alternatives_to_consider: [dotnet]
+    alternatives_to_consider: []
