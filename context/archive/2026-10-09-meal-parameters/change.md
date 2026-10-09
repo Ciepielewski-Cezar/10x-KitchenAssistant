@@ -1,10 +1,10 @@
 ---
 change_id: meal-parameters
 title: Meal parameters (S-05)
-status: impl_reviewed
+status: archived
 created: 2026-10-09
 updated: 2026-10-09
-archived_at: null
+archived_at: 2026-10-09T21:33:13Z
 ---
 
 ## Notes
