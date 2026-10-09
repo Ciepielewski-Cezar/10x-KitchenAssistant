@@ -37,6 +37,35 @@ public class ScoreLabelsTests
         Assert.Equal(expected, ScoreLabels.UseFirst(count));
     }
 
+    [Fact]
+    public void ToBuy_is_null_when_nothing_is_missing()
+    {
+        Assert.Null(ScoreLabels.ToBuy([Owned("mąka"), AlwaysAtHome("sól")]));
+    }
+
+    [Fact]
+    public void ToBuy_names_the_one_missing_ingredient()
+    {
+        Assert.Equal("Do kupienia: jajka", ScoreLabels.ToBuy([Owned("mąka"), Missing("jajka")]));
+    }
+
+    [Fact]
+    public void ToBuy_lists_missing_ingredients_in_order_without_owned_or_always_at_home()
+    {
+        Assert.Equal(
+            "Do kupienia: jajka, mleko",
+            ScoreLabels.ToBuy([Missing("jajka"), Owned("mąka"), AlwaysAtHome("sól"), Missing("mleko")]));
+    }
+
+    [Fact]
+    public void ToBuy_lists_a_repeated_missing_name_twice_to_match_the_missing_count()
+    {
+        IReadOnlyList<ProposalIngredient> ingredients = [Missing("jajka"), Owned("mąka"), Missing("jajka")];
+
+        Assert.Equal("Do kupienia: jajka, jajka", ScoreLabels.ToBuy(ingredients));
+        Assert.Equal(2, RecipeScore.From(ingredients).MissingCount);
+    }
+
     [Theory]
     [InlineData(1, "Ukryto 1 propozycję, której brakuje więcej niż 2 składników")]
     [InlineData(2, "Ukryto 2 propozycje, którym brakuje więcej niż 2 składników")]
@@ -48,4 +77,10 @@ public class ScoreLabelsTests
     {
         Assert.Equal(expected, ScoreLabels.Hidden(count));
     }
+
+    private static ProposalIngredient Owned(string name) => new(name, null, IngredientStatus.Owned, 1, null);
+
+    private static ProposalIngredient AlwaysAtHome(string name) => new(name, null, IngredientStatus.AlwaysAtHome, null, null);
+
+    private static ProposalIngredient Missing(string name) => new(name, null, IngredientStatus.Missing, null, null);
 }
