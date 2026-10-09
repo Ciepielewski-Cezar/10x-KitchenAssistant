@@ -1,0 +1,70 @@
+@namespace KitchenAssistant.Components.Ui
+@using KitchenAssistant.Recipes
+
+@* One proposal, collapsed by default. The details render only while expanded, so collapsed cards stay short and screen
+   readers skip them; the toggle stays in place, so focus does not jump. *@
+<article class="card mb-3">
+    <div class="card-body">
+        <h2 id="@titleId" class="card-title h4">@Proposal.Title</h2>
+        <RecipeScoreSummary Score="Proposal.Score" />
+        @if (Proposal.Summary is not null)
+        {
+            <p class="card-text">@Proposal.Summary</p>
+        }
+        @if (Proposal.PrepTimeMinutes is { } minutes)
+        {
+            <p class="card-text text-body-secondary">ok. @minutes min</p>
+        }
+        @if (ScoreLabels.ToBuy(Proposal.Ingredients) is { } toBuy)
+        {
+            <p class="card-text">@toBuy</p>
+        }
+
+        <button type="button" class="btn btn-outline-primary btn-sm" aria-expanded="@(expanded ? "true" : "false")" aria-describedby="@titleId" @onclick="Toggle">
+            @(expanded ? "Ukryj przepis" : "Pokaż przepis")
+        </button>
+
+        @if (expanded)
+        {
+            <h3 class="h6 mt-3">Składniki</h3>
+            <ul class="list-group mb-3">
+                @foreach (var ingredient in Proposal.Ingredients)
+                {
+                    <li class="list-group-item">
+                        @ingredient.Name
+                        @if (ingredient.Amount is not null)
+                        {
+                            <span class="ms-2 text-body-secondary">@ingredient.Amount</span>
+                        }
+                        <IngredientStatusBadge Status="ingredient.Status" />
+                    </li>
+                }
+            </ul>
+
+            <h3 class="h6">Przygotowanie</h3>
+            <ol class="mb-0">
+                @foreach (var step in Proposal.Steps)
+                {
+                    <li>@step</li>
+                }
+            </ol>
+        }
+    </div>
+</article>
+
+@code {
+    // Unique per card, so each toggle is described by its own recipe's title.
+    private readonly string titleId = $"recipe-{Guid.NewGuid():N}";
+    private bool expanded;
+
+    [Parameter, EditorRequired]
+    public RecipeProposal Proposal { get; set; } = default!;
+
+    // Read once, so a parent re-render does not collapse or expand a card the user has toggled.
+    [Parameter]
+    public bool InitiallyExpanded { get; set; }
+
+    protected override void OnInitialized() => expanded = InitiallyExpanded;
+
+    private void Toggle() => expanded = !expanded;
+}

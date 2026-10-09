@@ -3,6 +3,7 @@
 @using System.ComponentModel.DataAnnotations
 @using KitchenAssistant.Components.Account
 @using KitchenAssistant.Components.Account.Shared
+@using KitchenAssistant.Data
 @using KitchenAssistant.Recipes
 
 @inject IWebHostEnvironment Environment
@@ -71,6 +72,25 @@
     </section>
 
     <section class="mb-4">
+        <h2>IngredientStatusBadge</h2>
+        <ul class="list-group">
+            <li class="list-group-item">Owned <IngredientStatusBadge Status="IngredientStatus.Owned" /></li>
+            <li class="list-group-item">AlwaysAtHome <IngredientStatusBadge Status="IngredientStatus.AlwaysAtHome" /></li>
+            <li class="list-group-item">Missing <IngredientStatusBadge Status="IngredientStatus.Missing" /></li>
+        </ul>
+    </section>
+
+    <section class="mb-4">
+        <h2>RecipeCard</h2>
+        <h3 class="h6">Collapsed, with missing ingredients</h3>
+        <RecipeCard Proposal="collapsedWithMissing" />
+        <h3 class="h6">Collapsed, nothing missing, no summary or prep time</h3>
+        <RecipeCard Proposal="collapsedNothingMissing" />
+        <h3 class="h6">Expanded, owned + always-at-home + missing</h3>
+        <RecipeCard Proposal="expandedMixed" InitiallyExpanded="true" />
+    </section>
+
+    <section class="mb-4">
         <h2>ManageNavMenu</h2>
         <ManageNavMenu />
     </section>
@@ -80,6 +100,45 @@
     private bool isDevelopment;
     private readonly ErrorModel errorModel = new();
     private EditContext errorContext = default!;
+
+    private static readonly RecipeProposal collapsedWithMissing = Proposal(
+        "Omlet ze szpinakiem",
+        "Puszysty omlet z młodym szpinakiem i serem.",
+        15,
+        [
+            new("szpinak", "100 g", IngredientStatus.Owned, 1, ProductCategory.UseFirst),
+            new("jajka", "3 szt.", IngredientStatus.Missing, null, null),
+            new("ser feta", "50 g", IngredientStatus.Missing, null, null),
+            new("sól", null, IngredientStatus.AlwaysAtHome, null, null),
+        ],
+        ["Roztrzep jajka z solą.", "Podsmaż szpinak.", "Wlej jajka, dodaj fetę i smaż pod przykryciem."]);
+
+    private static readonly RecipeProposal collapsedNothingMissing = Proposal(
+        "Kanapki z twarożkiem",
+        null,
+        null,
+        [
+            new("chleb", "4 kromki", IngredientStatus.Owned, 2, ProductCategory.Stored),
+            new("twaróg", "200 g", IngredientStatus.Owned, 3, ProductCategory.UseFirst),
+            new("pieprz", null, IngredientStatus.AlwaysAtHome, null, null),
+        ],
+        ["Wymieszaj twaróg z pieprzem.", "Posmaruj kromki."]);
+
+    private static readonly RecipeProposal expandedMixed = Proposal(
+        "Makaron z pomidorami",
+        "Szybki obiad z tego, co jest w spiżarni.",
+        25,
+        [
+            new("makaron", "200 g", IngredientStatus.Owned, 4, ProductCategory.Stored),
+            new("pomidory", "4 szt.", IngredientStatus.Owned, 5, ProductCategory.UseFirst),
+            new("oliwa", "2 łyżki", IngredientStatus.AlwaysAtHome, null, null),
+            new("bazylia", "garść", IngredientStatus.Missing, null, null),
+        ],
+        ["Ugotuj makaron al dente.", "Podsmaż pokrojone pomidory na oliwie.", "Wymieszaj z makaronem i posyp bazylią."]);
+
+    // The score is computed from the ingredients, as RecipeService does, never written by hand.
+    private static RecipeProposal Proposal(string title, string? summary, int? prepMinutes, IReadOnlyList<ProposalIngredient> ingredients, IReadOnlyList<string> steps) =>
+        new(title, summary, prepMinutes, ingredients, steps, RecipeScore.From(ingredients));
 
     protected override void OnInitialized()
     {

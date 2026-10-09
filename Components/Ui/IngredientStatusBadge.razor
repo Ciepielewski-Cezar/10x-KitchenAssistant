@@ -1,0 +1,20 @@
+@namespace KitchenAssistant.Components.Ui
+@using KitchenAssistant.Recipes
+
+@switch (Status)
+{
+    case IngredientStatus.Owned:
+        <span class="badge text-bg-success ms-2">Masz</span>
+        break;
+    case IngredientStatus.AlwaysAtHome:
+        <span class="badge text-bg-secondary ms-2">Zawsze w domu</span>
+        break;
+    default:
+        <span class="badge text-bg-warning ms-2">Brakuje</span>
+        break;
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IngredientStatus Status { get; set; }
+}
