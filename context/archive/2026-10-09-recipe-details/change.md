@@ -1,10 +1,10 @@
 ---
 change_id: recipe-details
 title: Recipe details (S-04)
-status: impl_reviewed
+status: archived
 created: 2026-10-09
 updated: 2026-10-09
-archived_at: null
+archived_at: 2026-10-09T20:23:10Z
 ---
 
 ## Notes
