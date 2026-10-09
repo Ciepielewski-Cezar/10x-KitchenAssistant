@@ -63,6 +63,8 @@ else
 
     @if (proposals is not null)
     {
+        @* A new batch never reuses a card (so it renders collapsed): RecipeProposal's lists compare by reference, so keys are
+           unique within a batch and never match across batches. Revisit if RecipeProposal gets value-equal collections. *@
         @foreach (var proposal in proposals)
         {
             <RecipeCard @key="proposal" Proposal="proposal" />

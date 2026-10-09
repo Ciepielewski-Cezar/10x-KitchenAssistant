@@ -5,7 +5,7 @@
    readers skip them; the toggle stays in place, so focus does not jump. *@
 <article class="card mb-3">
     <div class="card-body">
-        <h2 class="card-title h4">@Proposal.Title</h2>
+        <h2 id="@titleId" class="card-title h4">@Proposal.Title</h2>
         <RecipeScoreSummary Score="Proposal.Score" />
         @if (Proposal.Summary is not null)
         {
@@ -20,7 +20,7 @@
             <p class="card-text">@toBuy</p>
         }
 
-        <button type="button" class="btn btn-outline-primary btn-sm" aria-expanded="@(expanded ? "true" : "false")" @onclick="Toggle">
+        <button type="button" class="btn btn-outline-primary btn-sm" aria-expanded="@(expanded ? "true" : "false")" aria-describedby="@titleId" @onclick="Toggle">
             @(expanded ? "Ukryj przepis" : "Pokaż przepis")
         </button>
 
@@ -53,6 +53,8 @@
 </article>
 
 @code {
+    // Unique per card, so each toggle is described by its own recipe's title.
+    private readonly string titleId = $"recipe-{Guid.NewGuid():N}";
     private bool expanded;
 
     [Parameter, EditorRequired]

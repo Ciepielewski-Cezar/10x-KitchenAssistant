@@ -1,7 +1,7 @@
 ---
 change_id: recipe-details
 title: Recipe details (S-04)
-status: implemented
+status: impl_reviewed
 created: 2026-10-09
 updated: 2026-10-09
 archived_at: null
