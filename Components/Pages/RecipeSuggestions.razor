@@ -50,10 +50,19 @@ else
         </div>
     }
 
-    @if (noneWithinMissingLimit)
+    @if (noneWithinLimits)
     {
         <div class="alert alert-warning" role="alert">
-            <p class="mb-2">Żadna propozycja nie mieści się w limicie @RecipeRanker.MaxMissing brakujących składników. Spróbuj ponownie albo dodaj produkty.</p>
+            <p class="mb-2">Żadna propozycja nie mieści się w limitach.</p>
+            @if (hiddenCount > 0)
+            {
+                <p class="mb-2">@ScoreLabels.Hidden(hiddenCount)</p>
+            }
+            @if (hiddenOverTimeCount > 0 && MealParameters.Default.MaxPrepMinutes is { } alertMaxPrepMinutes)
+            {
+                <p class="mb-2">@ScoreLabels.HiddenOverTime(hiddenOverTimeCount, alertMaxPrepMinutes)</p>
+            }
+            <p class="mb-2">Spróbuj ponownie, zmień parametry albo dodaj produkty.</p>
             <div class="d-flex flex-wrap align-items-center gap-3">
                 <button type="button" class="btn btn-warning btn-sm" disabled="@generating" @onclick="GenerateAsync">Spróbuj ponownie</button>
                 <a href="products" class="alert-link">Przejdź do swoich produktów</a>
@@ -74,6 +83,11 @@ else
         {
             <p class="text-body-secondary">@ScoreLabels.Hidden(hiddenCount)</p>
         }
+
+        @if (hiddenOverTimeCount > 0 && MealParameters.Default.MaxPrepMinutes is { } maxPrepMinutes)
+        {
+            <p class="text-body-secondary">@ScoreLabels.HiddenOverTime(hiddenOverTimeCount, maxPrepMinutes)</p>
+        }
     }
 }
 
@@ -88,9 +102,10 @@ else
     private bool loadFailed;
     private bool generating;
     private bool failed;
-    private bool noneWithinMissingLimit;
+    private bool noneWithinLimits;
     private IReadOnlyList<RecipeProposal>? proposals;
     private int hiddenCount;
+    private int hiddenOverTimeCount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -122,20 +137,24 @@ else
 
         generating = true;
         failed = false;
-        noneWithinMissingLimit = false;
+        noneWithinLimits = false;
         proposals = null;
         hiddenCount = 0;
+        hiddenOverTimeCount = 0;
         try
         {
-            var result = await RecipeService.GenerateAsync(userId!, cts.Token);
+            var result = await RecipeService.GenerateAsync(userId!, MealParameters.Default, cts.Token);
             switch (result.Status)
             {
                 case RecipeGenerationStatus.Succeeded:
                     proposals = result.Proposals;
                     hiddenCount = result.HiddenCount;
+                    hiddenOverTimeCount = result.HiddenOverTimeCount;
                     break;
-                case RecipeGenerationStatus.NoneWithinMissingLimit:
-                    noneWithinMissingLimit = true;
+                case RecipeGenerationStatus.NoneWithinLimits:
+                    noneWithinLimits = true;
+                    hiddenCount = result.HiddenCount;
+                    hiddenOverTimeCount = result.HiddenOverTimeCount;
                     break;
                 case RecipeGenerationStatus.NoProducts:
                     // The products were removed after the page loaded.

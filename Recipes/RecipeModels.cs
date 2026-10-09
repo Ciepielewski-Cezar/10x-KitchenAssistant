@@ -16,6 +16,16 @@ public record MealParameters(MealType MealType, int? MaxPrepMinutes, int Serving
 {
     // The PRD defaults: obiad, do 30 minut, 1 porcja.
     public static MealParameters Default { get; } = new(MealType.Dinner, 30, 1);
+
+    // The PRD's small, fixed parameter set: the page renders these options and RecipeService rejects anything else.
+    public static IReadOnlyList<MealType> MealTypeOptions { get; } = Enum.GetValues<MealType>();
+
+    public static IReadOnlyList<int?> MaxPrepMinutesOptions { get; } = [15, 30, 60, null];
+
+    public static IReadOnlyList<int> ServingsOptions { get; } = [1, 2, 4];
+
+    public bool IsAllowed =>
+        MealTypeOptions.Contains(MealType) && MaxPrepMinutesOptions.Contains(MaxPrepMinutes) && ServingsOptions.Contains(Servings);
 }
 
 public record RecipeRequest(IReadOnlyList<ProductListItem> Products, MealParameters Meal);
@@ -66,10 +76,15 @@ public enum RecipeGenerationStatus
     NoProducts,
     Failed,
 
-    // The AI returned usable recipes, but every one needs more than RecipeRanker.MaxMissing missing ingredients.
-    NoneWithinMissingLimit,
+    // The AI returned usable recipes, but the missing limit (RecipeRanker.MaxMissing) and the chosen time limit hid them all.
+    NoneWithinLimits,
 }
 
-// HiddenCount is how many usable proposals were left out for exceeding RecipeRanker.MaxMissing; 0 unless the status is
-// Succeeded or NoneWithinMissingLimit.
-public record RecipeGenerationResult(RecipeGenerationStatus Status, IReadOnlyList<RecipeProposal> Proposals, int HiddenCount);
+// HiddenCount is how many usable proposals were left out for exceeding RecipeRanker.MaxMissing. HiddenOverTimeCount is how
+// many of the rest were left out for the time limit (over it, or stating no time). Both are 0 unless the status is
+// Succeeded or NoneWithinLimits.
+public record RecipeGenerationResult(
+    RecipeGenerationStatus Status,
+    IReadOnlyList<RecipeProposal> Proposals,
+    int HiddenCount,
+    int HiddenOverTimeCount);

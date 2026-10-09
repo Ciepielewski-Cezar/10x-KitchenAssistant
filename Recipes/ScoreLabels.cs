@@ -22,14 +22,9 @@ public static class ScoreLabels
     public static string Hidden(int hiddenCount) =>
         $"Ukryto {hiddenCount} {Plural(hiddenCount, "propozycję, której", "propozycje, którym", "propozycji, którym")} brakuje więcej niż {RecipeRanker.MaxMissing} składników";
 
-    // Polish plural forms: one for 1, few for a last digit of 2-4 (except 12-14), many for the rest (0 included).
-    private static string Plural(int count, string one, string few, string many)
-    {
-        if (count == 1)
-        {
-            return one;
-        }
+    // The proposals the time limit hid: over it, or stating no time at all.
+    public static string HiddenOverTime(int count, int maxPrepMinutes) =>
+        $"Ukryto {count} {Plural(count, "propozycję, która trwa", "propozycje, które trwają", "propozycji, które trwają")} dłużej niż {maxPrepMinutes} minut lub {Plural(count, "nie podaje", "nie podają", "nie podają")} czasu";
 
-        return count % 10 is >= 2 and <= 4 && count % 100 is not (>= 12 and <= 14) ? few : many;
-    }
+    private static string Plural(int count, string one, string few, string many) => PolishPlural.Choose(count, one, few, many);
 }
