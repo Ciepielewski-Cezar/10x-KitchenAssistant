@@ -3,7 +3,7 @@ project: Kitchen Assistant
 version: 1
 status: draft
 created: 2026-09-30
-updated: 2026-10-08
+updated: 2026-10-09
 prd_version: 2
 main_goal: speed
 top_blocker: time
@@ -45,7 +45,7 @@ Osoba gotująca dla siebie co najmniej raz w tygodniu traci czas na szukanie prz
 | S-01 | pantry-add-products     | po zalogowaniu widzi swoją prywatną listę produktów i dodaje produkt do jednej z dwóch kategorii                | —             | FR-001, FR-002, US-01, Access Control      | done        |
 | S-02 | first-recipe-generation | prosi o przepisy i w ciągu minuty dostaje kilka propozycji wygenerowanych przez AI z jego produktów             | S-01, lokalny klucz API dostawcy AI (krok L2 planu local-dev) | US-01, FR-005, NFR ≤ 1 min, NFR struktura  | done |
 | S-03 | recipe-ranking          | widzi propozycje uporządkowane według oceny i liczby braków, które liczy aplikacja                              | S-02          | FR-005, US-01, Business Logic              | done |
-| S-04 | recipe-details          | otwiera szczegóły wybranej propozycji i widzi pełny przepis w spójnej strukturze                                | S-02          | FR-006, NFR struktura, NFR ≤ 1 min         | proposed |
+| S-04 | recipe-details          | otwiera szczegóły wybranej propozycji i widzi pełny przepis w spójnej strukturze                                | S-02          | FR-006, NFR struktura, NFR ≤ 1 min         | done |
 | S-05 | meal-parameters         | wybiera parametry posiłku z małego zestawu, a propozycje je respektują                                          | S-02          | FR-004, US-01, Business Logic              | proposed |
 | S-06 | pantry-edit-remove      | zmienia albo usuwa produkt ze swojej listy                                                                      | S-01          | FR-003                                     | done |
 | S-07 | recipe-generation-spike | dostaje propozycje w ≤ 1 min na ustawieniach modelu potwierdzonych pomiarem 10 prawdziwych wywołań              | S-02, lokalny klucz API z limitem wydatków | NFR ≤ 1 min, FR-005, NFR struktura | ready |
@@ -137,7 +137,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Czy wygenerowane propozycje muszą przetrwać odświeżenie strony lub ponowne logowanie, czy wystarczy bieżąca sesja? (PRD wyłącza historię z MVP, co sugeruje sesję.) — Owner: user. Block: no.
 - **Risk:** niskie ryzyko; opiera się na kształcie przepisu z `S-02` (jedno wywołanie), który pomiar `recipe-generation-spike` potwierdzi dopiero w następnym kamieniu milowym. Jeśli pomiar każe rozdzielić generowanie na listę i pełny przepis, `S-04` wymaga przeróbki (drugie wywołanie AI i wymóg ≤ 1 min) — dlatego widok szczegółów powinien czytać gotowy `RecipeProposal`, bez własnego wywołania AI.
-- **Status:** proposed
+- **Status:** done
 
 ### S-05: Parametry posiłku
 
@@ -202,3 +202,4 @@ Brak otwartych pytań. Rozstrzygnięte 2026-09-30:
 - **S-02: użytkownik z zapisanymi produktami prosi o przepisy i w ciągu minuty dostaje do 5 propozycji wygenerowanych przez AI, zbudowanych z jego produktów, każdą z listą składników i krokami przygotowania; składnik z zapasów jest powiązany z produktem użytkownika przez identyfikator (bez oceny i kolejności — te dochodzą w `S-03`).** — Archived 2026-10-08 → `context/archive/2026-10-03-first-recipe-generation/`. Lesson: —.
 - **S-03: użytkownik widzi propozycje uporządkowane: najpierw niewymagające zakupów i zużywające najwięcej produktów „zużyj w pierwszej kolejności”, potem te z 1–2 brakami; przy każdej widzi ocenę „Masz X z Y składników” i liczbę braków, które wylicza aplikacja, a nie AI; propozycje z więcej niż 2 brakami nie są pokazywane.** — Archived 2026-10-08 → `context/archive/2026-10-08-recipe-ranking/`. Lesson: —.
 - **S-06: użytkownik zmienia nazwę lub kategorię produktu albo usuwa produkt ze swojej listy.** — Archived 2026-10-08 → `context/archive/2026-10-08-pantry-edit-remove/`. Lesson: —.
+- **S-04: użytkownik otwiera wybraną propozycję i widzi pełny przepis (składniki, kroki) w spójnej, czytelnej strukturze.** — Archived 2026-10-09 → `context/archive/2026-10-09-recipe-details/`. Lesson: —.
