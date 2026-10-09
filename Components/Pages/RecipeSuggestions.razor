@@ -28,6 +28,16 @@ else
         <p>Najpierw dodaj produkty. <a href="products">Przejdź do swoich produktów</a></p>
     }
 
+    <SegmentedControl TValue="MealType" Name="meal-type" Legend="Rodzaj posiłku" Options="mealTypeOptions"
+                      Value="selected.MealType" ValueChanged="value => selected = selected with { MealType = value }"
+                      Disabled="generating" />
+    <SegmentedControl TValue="int?" Name="max-prep" Legend="Maksymalny czas przygotowania" Options="maxPrepMinutesOptions"
+                      Value="selected.MaxPrepMinutes" ValueChanged="value => selected = selected with { MaxPrepMinutes = value }"
+                      Disabled="generating" />
+    <SegmentedControl TValue="int" Name="servings" Legend="Liczba porcji" Options="servingsOptions"
+                      Value="selected.Servings" ValueChanged="value => selected = selected with { Servings = value }"
+                      Disabled="generating" />
+
     <div class="mb-4">
         <button type="button" class="btn btn-primary" disabled="@(generating || hasProducts != true)" @onclick="GenerateAsync">
             Zaproponuj przepisy
@@ -50,6 +60,12 @@ else
         </div>
     }
 
+    @if ((noneWithinLimits || proposals is not null) && generatedFor is not null)
+    {
+        @* Names the parameters the list was generated with, not the live controls. *@
+        <p class="text-body-secondary">Propozycje dla: @MealLabels.Summary(generatedFor)</p>
+    }
+
     @if (noneWithinLimits)
     {
         <div class="alert alert-warning" role="alert">
@@ -58,7 +74,7 @@ else
             {
                 <p class="mb-2">@ScoreLabels.Hidden(hiddenCount)</p>
             }
-            @if (hiddenOverTimeCount > 0 && MealParameters.Default.MaxPrepMinutes is { } alertMaxPrepMinutes)
+            @if (hiddenOverTimeCount > 0 && generatedFor?.MaxPrepMinutes is { } alertMaxPrepMinutes)
             {
                 <p class="mb-2">@ScoreLabels.HiddenOverTime(hiddenOverTimeCount, alertMaxPrepMinutes)</p>
             }
@@ -84,7 +100,7 @@ else
             <p class="text-body-secondary">@ScoreLabels.Hidden(hiddenCount)</p>
         }
 
-        @if (hiddenOverTimeCount > 0 && MealParameters.Default.MaxPrepMinutes is { } maxPrepMinutes)
+        @if (hiddenOverTimeCount > 0 && generatedFor?.MaxPrepMinutes is { } maxPrepMinutes)
         {
             <p class="text-body-secondary">@ScoreLabels.HiddenOverTime(hiddenOverTimeCount, maxPrepMinutes)</p>
         }
@@ -106,6 +122,20 @@ else
     private IReadOnlyList<RecipeProposal>? proposals;
     private int hiddenCount;
     private int hiddenOverTimeCount;
+
+    // The live controls; every load starts at the PRD defaults.
+    private MealParameters selected = MealParameters.Default;
+    // Captured when a generation starts, so the caption and notes keep naming the parameters the list came from.
+    private MealParameters? generatedFor;
+
+    private static readonly IReadOnlyList<(MealType Value, string Label)> mealTypeOptions =
+        [.. MealParameters.MealTypeOptions.Select(m => (m, MealLabels.For(m)))];
+
+    private static readonly IReadOnlyList<(int? Value, string Label)> maxPrepMinutesOptions =
+        [.. MealParameters.MaxPrepMinutesOptions.Select(m => (m, MealLabels.ForMaxPrepTime(m)))];
+
+    private static readonly IReadOnlyList<(int Value, string Label)> servingsOptions =
+        [.. MealParameters.ServingsOptions.Select(s => (s, s.ToString()))];
 
     protected override async Task OnInitializedAsync()
     {
@@ -141,9 +171,10 @@ else
         proposals = null;
         hiddenCount = 0;
         hiddenOverTimeCount = 0;
+        generatedFor = selected;
         try
         {
-            var result = await RecipeService.GenerateAsync(userId!, MealParameters.Default, cts.Token);
+            var result = await RecipeService.GenerateAsync(userId!, generatedFor, cts.Token);
             switch (result.Status)
             {
                 case RecipeGenerationStatus.Succeeded:

@@ -331,27 +331,27 @@ No schema change. `RecipeGenerationStatus.NoneWithinMissingLimit` is renamed in 
 
 #### Automated
 
-- [x] 1.1 Build succeeds with no new warnings: `dotnet build`
-- [x] 1.2 All tests pass, including the new ranker, service, label and model tests: `dotnet test`
-- [x] 1.3 The frozen system-prompt test still passes unchanged: `dotnet test --filter "FullyQualifiedName~RecipePromptTests"`
+- [x] 1.1 Build succeeds with no new warnings: `dotnet build` — 869caeb
+- [x] 1.2 All tests pass, including the new ranker, service, label and model tests: `dotnet test` — 869caeb
+- [x] 1.3 The frozen system-prompt test still passes unchanged: `dotnet test --filter "FullyQualifiedName~RecipePromptTests"` — 869caeb
 
 #### Manual
 
-- [x] 1.4 With the fake generator, `/recipes` under the defaults shows two proposals, the note "Ukryto 1 propozycję, której brakuje więcej niż 2 składników", and the note "Ukryto 1 propozycję, która trwa dłużej niż 30 minut lub nie podaje czasu".
+- [x] 1.4 With the fake generator, `/recipes` under the defaults shows two proposals, the note "Ukryto 1 propozycję, której brakuje więcej niż 2 składników", and the note "Ukryto 1 propozycję, która trwa dłużej niż 30 minut lub nie podaje czasu". — 869caeb
 
 ### Phase 2: Meal parameter controls on `/recipes`
 
 #### Automated
 
-- [ ] 2.1 Build succeeds with no new warnings: `dotnet build`
-- [ ] 2.2 All tests pass: `dotnet test`
-- [ ] 2.3 The literal-colour scan reports nothing in the changed views
+- [x] 2.1 Build succeeds with no new warnings: `dotnet build`
+- [x] 2.2 All tests pass: `dotnet test`
+- [x] 2.3 The literal-colour scan reports nothing in the changed views
 
 #### Manual
 
-- [ ] 2.4 `/dev/ui` shows the three SegmentedControl states in theme colours, with the checked option filled, the disabled group dimmed and legends at `FormField` label size
-- [ ] 2.5 On `/recipes`, Obiad / do 30 minut / 1 are preselected on every load; Tab, arrow keys and the focus ring work
-- [ ] 2.6 Fake generator: "do 15 minut" shows the none-within-limits alert with both notes and the caption; "bez limitu" shows three proposals
-- [ ] 2.7 Changing a control after a generation leaves the list and caption unchanged until the next click
-- [ ] 2.8 At 375 px wide, the groups wrap with no horizontal scroll
-- [ ] 2.9 Anthropic generator, "Śniadanie, do 15 minut, 2 porcje": breakfast-style recipes within 15 minutes, amounts for two
+- [x] 2.4 `/dev/ui` shows the three SegmentedControl states in theme colours, with the checked option filled, the disabled group dimmed and legends at `FormField` label size
+- [x] 2.5 On `/recipes`, Obiad / do 30 minut / 1 are preselected on every load; Tab, arrow keys and the focus ring work
+- [x] 2.6 Fake generator: "do 15 minut" shows the none-within-limits alert with both notes and the caption; "bez limitu" shows three proposals
+- [x] 2.7 Changing a control after a generation leaves the list and caption unchanged until the next click
+- [x] 2.8 At 375 px wide, the groups wrap with no horizontal scroll
+- [x] 2.9 Anthropic generator, "Śniadanie, do 15 minut, 2 porcje": breakfast-style recipes within 15 minutes, amounts for two

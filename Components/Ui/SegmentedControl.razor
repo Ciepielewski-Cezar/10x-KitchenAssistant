@@ -1,0 +1,43 @@
+@namespace KitchenAssistant.Components.Ui
+@typeparam TValue
+
+@* A single choice from a small, fixed set, as a row of toggle buttons. Native radios, so Tab reaches the group and the
+   arrow keys move the selection without JS. The row wraps (no .btn-group), so narrow screens get no broken corners. *@
+<fieldset class="mb-3" disabled="@Disabled">
+    <legend class="form-label fs-6">@Legend</legend>
+    <div class="d-flex flex-wrap gap-2">
+        @foreach (var (option, index) in Options.Select((option, index) => (option, index)))
+        {
+            var id = $"{Name}-{index}";
+            <input type="radio" class="btn-check" name="@Name" id="@id" autocomplete="off"
+                   checked="@IsSelected(option.Value)"
+                   @onchange="() => SelectAsync(option.Value)" />
+            <label class="btn btn-outline-primary" for="@id">@option.Label</label>
+        }
+    </div>
+</fieldset>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Name { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public string Legend { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<(TValue Value, string Label)> Options { get; set; } = default!;
+
+    [Parameter]
+    public TValue Value { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback<TValue> ValueChanged { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    private bool IsSelected(TValue value) => EqualityComparer<TValue>.Default.Equals(value, Value);
+
+    // Invoked with the option's server-side value, never the posted string, so an event cannot carry a value outside Options.
+    private Task SelectAsync(TValue value) => ValueChanged.InvokeAsync(value);
+}

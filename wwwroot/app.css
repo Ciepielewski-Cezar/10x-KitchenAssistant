@@ -289,6 +289,20 @@
     --bs-btn-disabled-border-color: var(--destructive);
 }
 
+.btn-outline-primary {
+    --bs-btn-color: var(--primary);
+    --bs-btn-border-color: var(--primary);
+    --bs-btn-hover-color: var(--primary-foreground);
+    --bs-btn-hover-bg: var(--primary);
+    --bs-btn-hover-border-color: var(--primary);
+    --bs-btn-focus-shadow-rgb: var(--primary-focus-rgb);
+    --bs-btn-active-color: var(--primary-foreground);
+    --bs-btn-active-bg: var(--primary);
+    --bs-btn-active-border-color: var(--primary);
+    --bs-btn-disabled-color: var(--primary);
+    --bs-btn-disabled-border-color: var(--primary);
+}
+
 .btn-link {
     --bs-btn-disabled-color: var(--muted-foreground);
     --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
