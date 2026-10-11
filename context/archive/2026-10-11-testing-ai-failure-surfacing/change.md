@@ -1,10 +1,10 @@
 ---
 change_id: testing-ai-failure-surfacing
 title: Testing AI failure surfacing
-status: implemented
+status: archived
 created: 2026-10-11
 updated: 2026-10-11
-archived_at: null
+archived_at: 2026-10-11T19:03:49Z
 ---
 
 ## Notes
