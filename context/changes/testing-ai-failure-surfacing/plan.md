@@ -521,24 +521,24 @@ Not applicable: no schema or data changes.
 
 #### Automated
 
-- [x] 3.1 The new tests fail before the page change and pass after it
-- [x] 3.2 The full suite passes
-- [x] 3.3 No literal colours in the touched page
+- [x] 3.1 The new tests fail before the page change and pass after it — acedf7b
+- [x] 3.2 The full suite passes — acedf7b
+- [x] 3.3 No literal colours in the touched page — acedf7b
 
 #### Manual
 
-- [x] 3.4 With LocalDB stopped then restarted, retry restores the controls and generation works
+- [x] 3.4 With LocalDB stopped then restarted, retry restores the controls and generation works — acedf7b
 
 ### Phase 4: Unit gaps for risks #1 and #6
 
 #### Automated
 
-- [ ] 4.1 New tests pass
-- [ ] 4.2 The full suite passes
+- [x] 4.1 New tests pass
+- [x] 4.2 The full suite passes
 
 #### Manual
 
-- [ ] 4.3 Owner confirms the network-error test's outcome
+- [x] 4.3 Owner confirms the network-error test's outcome
 
 ### Phase 5: Mutation gate and cookbook
 

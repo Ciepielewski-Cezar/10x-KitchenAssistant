@@ -119,6 +119,16 @@ public class RecipeClassifierTests
     }
 
     [Fact]
+    public void Null_ingredient_element_is_dropped_and_the_other_ingredients_are_kept()
+    {
+        var recipe = Recipe(ingredients: [null!, new AiIngredient(1, "jajka", "2 szt."), null!, new AiIngredient(null, "śmietana", null)]);
+
+        var proposal = Assert.Single(RecipeClassifier.Classify([recipe], Products));
+
+        Assert.Equal(new[] { "jajka", "śmietana" }, proposal.Ingredients.Select(i => i.Name));
+    }
+
+    [Fact]
     public void Recipe_text_is_trimmed_and_blank_steps_are_dropped()
     {
         var recipe = new AiRecipe("  Omlet ", "  ", 0, [new AiIngredient(1, "jajka", " 2 szt. ")], [" Usmaż. ", "", null]);

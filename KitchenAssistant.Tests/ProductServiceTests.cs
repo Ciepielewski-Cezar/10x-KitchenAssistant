@@ -161,6 +161,36 @@ public sealed class ProductServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Name_of_100_characters_is_accepted()
+    {
+        var name = new string('a', 100);
+
+        Assert.Equal(AddProductResult.Added, await _service.AddProductAsync(UserA, Form(name)));
+
+        Assert.Equal(name, Assert.Single((await _service.GetProductsAsync(UserA)).UseFirst).Name);
+    }
+
+    [Fact]
+    public async Task Name_of_101_characters_is_rejected_and_nothing_is_stored()
+    {
+        await Assert.ThrowsAsync<ArgumentException>(() => _service.AddProductAsync(UserA, Form(new string('a', 101))));
+
+        var list = await _service.GetProductsAsync(UserA);
+        Assert.Empty(list.UseFirst);
+        Assert.Empty(list.Stored);
+    }
+
+    [Fact]
+    public async Task Name_of_100_characters_with_surrounding_spaces_is_accepted_and_stored_trimmed()
+    {
+        var name = new string('a', 100);
+
+        Assert.Equal(AddProductResult.Added, await _service.AddProductAsync(UserA, Form($"  {name}  ")));
+
+        Assert.Equal(name, Assert.Single((await _service.GetProductsAsync(UserA)).UseFirst).Name);
+    }
+
+    [Fact]
     public async Task Missing_category_is_rejected()
     {
         await Assert.ThrowsAsync<ArgumentException>(() => _service.AddProductAsync(UserA, new ProductForm { Name = "mleko" }));

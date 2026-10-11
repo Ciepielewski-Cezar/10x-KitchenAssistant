@@ -24,10 +24,10 @@ public class AnthropicRecipeGeneratorTests
     private static AnthropicRecipeGenerator Generator(AnthropicClient client) =>
         new(client, Options.Create(new RecipeOptions()), TimeProvider.System, NullLogger<AnthropicRecipeGenerator>.Instance);
 
-    private static AnthropicClient Client(StubHandler handler, string? apiKey = "test-key") =>
+    private static AnthropicClient Client(HttpMessageHandler handler, string? apiKey = "test-key") =>
         new() { ApiKey = apiKey, HttpClient = new HttpClient(handler), MaxRetries = 0 };
 
-    private static string MessageJson(string stopReason, string text) => JsonSerializer.Serialize(new
+    private static string MessageJson(string? stopReason, string text) => JsonSerializer.Serialize(new
     {
         id = "msg_test",
         type = "message",
@@ -101,6 +101,7 @@ public class AnthropicRecipeGeneratorTests
     [Theory]
     [InlineData("refusal")]
     [InlineData("max_tokens")]
+    [InlineData("pause_turn")]
     public async Task Stop_reason_other_than_end_turn_throws(string stopReason)
     {
         using var client = Client(new StubHandler(HttpStatusCode.OK, MessageJson(stopReason, """{"recipes":[""")));
@@ -108,6 +109,14 @@ public class AnthropicRecipeGeneratorTests
         var ex = await Assert.ThrowsAsync<RecipeGenerationException>(() => Generator(client).GenerateJsonAsync(Request, CancellationToken.None));
 
         Assert.Contains(stopReason, ex.Message);
+    }
+
+    [Fact]
+    public async Task Null_stop_reason_throws()
+    {
+        using var client = Client(new StubHandler(HttpStatusCode.OK, MessageJson(null, RecipesJson)));
+
+        await Assert.ThrowsAsync<RecipeGenerationException>(() => Generator(client).GenerateJsonAsync(Request, CancellationToken.None));
     }
 
     [Fact]
@@ -123,6 +132,27 @@ public class AnthropicRecipeGeneratorTests
     {
         const string error = """{"type":"error","error":{"type":"overloaded_error","message":"Overloaded"}}""";
         using var client = Client(new StubHandler((HttpStatusCode)529, error));
+
+        await Assert.ThrowsAnyAsync<AnthropicException>(() => Generator(client).GenerateJsonAsync(Request, CancellationToken.None));
+    }
+
+    [Theory]
+    [InlineData(400)]
+    [InlineData(401)]
+    [InlineData(429)]
+    [InlineData(500)]
+    public async Task Other_api_error_statuses_throw_an_AnthropicException(int status)
+    {
+        const string error = """{"type":"error","error":{"type":"api_error","message":"Failed"}}""";
+        using var client = Client(new StubHandler((HttpStatusCode)status, error));
+
+        await Assert.ThrowsAnyAsync<AnthropicException>(() => Generator(client).GenerateJsonAsync(Request, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task Network_error_throws_an_AnthropicException()
+    {
+        using var client = Client(new ThrowingHandler(new HttpRequestException("connection refused")));
 
         await Assert.ThrowsAnyAsync<AnthropicException>(() => Generator(client).GenerateJsonAsync(Request, CancellationToken.None));
     }
@@ -160,6 +190,12 @@ public class AnthropicRecipeGeneratorTests
     public void ParseEffort_rejects_anything_else(string? value)
     {
         Assert.Throws<InvalidOperationException>(() => AnthropicRecipeGenerator.ParseEffort(value));
+    }
+
+    private sealed class ThrowingHandler(Exception failure) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+            Task.FromException<HttpResponseMessage>(failure);
     }
 
     private sealed class StubHandler(HttpStatusCode status, string responseJson) : HttpMessageHandler
