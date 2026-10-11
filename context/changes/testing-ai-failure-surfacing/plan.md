@@ -533,22 +533,22 @@ Not applicable: no schema or data changes.
 
 #### Automated
 
-- [x] 4.1 New tests pass
-- [x] 4.2 The full suite passes
+- [x] 4.1 New tests pass — 66f5d45
+- [x] 4.2 The full suite passes — 66f5d45
 
 #### Manual
 
-- [x] 4.3 Owner confirms the network-error test's outcome
+- [x] 4.3 Owner confirms the network-error test's outcome — 66f5d45
 
 ### Phase 5: Mutation gate and cookbook
 
 #### Automated
 
-- [ ] 5.1 The tool restores
-- [ ] 5.2 The full suite passes after any added assertions
-- [ ] 5.3 The mutation run completes and the report exists
+- [x] 5.1 The tool restores
+- [x] 5.2 The full suite passes after any added assertions
+- [x] 5.3 The mutation run completes and the report exists
 
 #### Manual
 
-- [ ] 5.4 Owner reviews the survivor verdicts in mutation-report.md
-- [ ] 5.5 Owner confirms test-plan §6.2 is enough to write a new page test
+- [x] 5.4 Owner reviews the survivor verdicts in mutation-report.md
+- [x] 5.5 Owner confirms test-plan §6.2 is enough to write a new page test
