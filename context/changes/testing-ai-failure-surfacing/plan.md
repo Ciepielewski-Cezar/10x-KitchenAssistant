@@ -544,11 +544,11 @@ Not applicable: no schema or data changes.
 
 #### Automated
 
-- [x] 5.1 The tool restores
-- [x] 5.2 The full suite passes after any added assertions
-- [x] 5.3 The mutation run completes and the report exists
+- [x] 5.1 The tool restores — 3bca814
+- [x] 5.2 The full suite passes after any added assertions — 3bca814
+- [x] 5.3 The mutation run completes and the report exists — 3bca814
 
 #### Manual
 
-- [x] 5.4 Owner reviews the survivor verdicts in mutation-report.md
-- [x] 5.5 Owner confirms test-plan §6.2 is enough to write a new page test
+- [x] 5.4 Owner reviews the survivor verdicts in mutation-report.md — 3bca814
+- [x] 5.5 Owner confirms test-plan §6.2 is enough to write a new page test — 3bca814
