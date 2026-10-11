@@ -509,25 +509,25 @@ Not applicable: no schema or data changes.
 
 #### Automated
 
-- [x] 2.1 Page tests pass
-- [x] 2.2 The full suite passes
+- [x] 2.1 Page tests pass — d28b45f
+- [x] 2.2 The full suite passes — d28b45f
 
 #### Manual
 
-- [x] 2.3 Owner spot-checks expected strings come from the cited archive plans
-- [x] 2.4 Owner breaks one branch, confirms a page test fails, then reverts
+- [x] 2.3 Owner spot-checks expected strings come from the cited archive plans — d28b45f
+- [x] 2.4 Owner breaks one branch, confirms a page test fails, then reverts — d28b45f
 
 ### Phase 3: Products-load retry (test-first)
 
 #### Automated
 
-- [ ] 3.1 The new tests fail before the page change and pass after it
-- [ ] 3.2 The full suite passes
-- [ ] 3.3 No literal colours in the touched page
+- [x] 3.1 The new tests fail before the page change and pass after it
+- [x] 3.2 The full suite passes
+- [x] 3.3 No literal colours in the touched page
 
 #### Manual
 
-- [ ] 3.4 With LocalDB stopped then restarted, retry restores the controls and generation works
+- [x] 3.4 With LocalDB stopped then restarted, retry restores the controls and generation works
 
 ### Phase 4: Unit gaps for risks #1 and #6
 

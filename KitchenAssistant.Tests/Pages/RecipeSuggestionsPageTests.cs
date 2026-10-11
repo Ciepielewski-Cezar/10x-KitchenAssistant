@@ -249,4 +249,64 @@ public sealed class RecipeSuggestionsPageTests
         // Let the page's pending handler finish its cancellation path; an escaped exception would surface on this dispatch.
         await ctx.Renderer.Dispatcher.InvokeAsync(() => { });
     }
+
+    private static void AssertLoadFailedState(IRenderedComponent<RecipeSuggestions> page)
+    {
+        page.WaitForAssertion(() =>
+        {
+            var alert = Assert.Single(page.FindAll(".alert-danger"));
+            Assert.Contains("Nie udało się wczytać produktów.", alert.TextContent);
+        });
+        Assert.DoesNotContain(page.FindAll("button"), b => b.TextContent.Trim() == "Zaproponuj przepisy");
+        Assert.Empty(page.FindAll("fieldset"));
+    }
+
+    [Fact]
+    public async Task Retry_after_a_failed_products_load_shows_the_generation_controls()
+    {
+        using var ctx = new RecipePageContext();
+        await ctx.AddProductAsync("jajka");
+        ctx.Database.FailNext();
+        var page = ctx.Render<RecipeSuggestions>();
+        AssertLoadFailedState(page);
+        Assert.Equal("Spróbuj ponownie", RetryButton(page).TextContent.Trim());
+
+        RetryButton(page).Click();
+
+        page.WaitForAssertion(() =>
+        {
+            Assert.Empty(page.FindAll(".alert"));
+            Assert.False(MainButton(page).HasAttribute("disabled"));
+        });
+    }
+
+    [Fact]
+    public async Task Retry_that_fails_again_keeps_the_alert_and_re_enables_the_retry_button()
+    {
+        using var ctx = new RecipePageContext();
+        await ctx.AddProductAsync("jajka");
+        ctx.Database.FailNext(2);
+        var page = ctx.Render<RecipeSuggestions>();
+        AssertLoadFailedState(page);
+
+        RetryButton(page).Click();
+
+        page.WaitForAssertion(() => Assert.False(RetryButton(page).HasAttribute("disabled")));
+        AssertLoadFailedState(page);
+    }
+
+    [Fact]
+    public void Retry_that_finds_no_products_shows_the_add_products_prompt()
+    {
+        using var ctx = new RecipePageContext();
+        ctx.Database.FailNext();
+        var page = ctx.Render<RecipeSuggestions>();
+        AssertLoadFailedState(page);
+
+        RetryButton(page).Click();
+
+        page.WaitForAssertion(() => Assert.Contains("Najpierw dodaj produkty.", page.Markup));
+        Assert.Empty(page.FindAll(".alert"));
+        Assert.True(MainButton(page).HasAttribute("disabled"));
+    }
 }
