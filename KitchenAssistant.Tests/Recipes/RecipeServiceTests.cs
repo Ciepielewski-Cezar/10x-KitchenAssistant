@@ -198,6 +198,30 @@ public sealed class RecipeServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task More_than_five_usable_recipes_are_cut_to_the_best_five()
+    {
+        var eggs = await AddAsync(UserA, "jajka");
+        AiIngredient Owned() => new(eggs, "jajka", null);
+        // The weakest recipes come first, so keeping the first five of the AI's answer would give the wrong titles.
+        var generator = new StubGenerator((_, _) => Task.FromResult(JsonOf(
+            Recipe("Dwa braki A", [Owned(), .. Missing(2)]),
+            Recipe("Dwa braki B", [Owned(), .. Missing(2)]),
+            Recipe("Brak A", [Owned(), .. Missing(1)]),
+            Recipe("Brak B", [Owned(), .. Missing(1)]),
+            Recipe("Bez braków A", Owned()),
+            Recipe("Bez braków B", Owned()),
+            Recipe("Bez braków C", Owned()))));
+
+        var result = await Service(generator).GenerateAsync(UserA, MealParameters.Default);
+
+        Assert.Equal(RecipeGenerationStatus.Succeeded, result.Status);
+        Assert.Equal(5, result.Proposals.Count);
+        Assert.Equal(
+            new[] { "Bez braków A", "Bez braków B", "Bez braków C", "Brak A", "Brak B" },
+            result.Proposals.Select(p => p.Title));
+    }
+
+    [Fact]
     public async Task All_proposals_over_the_missing_limit_is_NoneWithinLimits()
     {
         var eggs = await AddAsync(UserA, "jajka");

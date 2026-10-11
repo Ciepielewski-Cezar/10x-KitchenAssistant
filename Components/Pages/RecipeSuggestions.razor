@@ -19,7 +19,10 @@
 
 @if (loadFailed)
 {
-    <div class="alert alert-danger" role="alert">Nie udało się wczytać produktów.</div>
+    <div class="alert alert-danger d-flex align-items-center" role="alert">
+        <span>Nie udało się wczytać produktów.</span>
+        <button type="button" class="btn btn-outline-danger btn-sm ms-3" disabled="@loading" @onclick="LoadProductsAsync">Spróbuj ponownie</button>
+    </div>
 }
 else
 {
@@ -116,6 +119,7 @@ else
     private string? userId;
     private bool? hasProducts;
     private bool loadFailed;
+    private bool loading;
     private bool generating;
     private bool failed;
     private bool noneWithinLimits;
@@ -133,6 +137,19 @@ else
     {
         var authState = await AuthenticationStateTask!;
         userId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        await LoadProductsAsync();
+    }
+
+    private async Task LoadProductsAsync()
+    {
+        // The button is only disabled once the render reaches the browser, so a fast double click can still get here twice.
+        if (loading)
+        {
+            return;
+        }
+
+        loading = true;
+        loadFailed = false;
         try
         {
             var products = await ProductService.GetProductsAsync(userId!, cts.Token);
@@ -146,6 +163,10 @@ else
         {
             Logger.LogError(ex, "Failed to load products for recipe suggestions.");
             loadFailed = true;
+        }
+        finally
+        {
+            loading = false;
         }
     }
 
