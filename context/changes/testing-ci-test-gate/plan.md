@@ -282,25 +282,25 @@ None for data. After Phase 2, all work on `main`, including 10x context artifact
 
 #### Automated
 
-- [x] 1.1 Release build of the solution succeeds
-- [x] 1.2 The test run writes a TRX and the guard passes, printing the executed count
-- [x] 1.3 The guard exits non-zero on an empty results directory
-- [x] 1.4 The guard exits non-zero on a zero-executed run
-- [x] 1.5 The vulnerability script exits 0 on the live clean report and non-zero on a sample High advisory
-- [ ] 1.6 On the change PR, both checks succeed
+- [x] 1.1 Release build of the solution succeeds — d0a2959
+- [x] 1.2 The test run writes a TRX and the guard passes, printing the executed count — d0a2959
+- [x] 1.3 The guard exits non-zero on an empty results directory — d0a2959
+- [x] 1.4 The guard exits non-zero on a zero-executed run — d0a2959
+- [x] 1.5 The vulnerability script exits 0 on the live clean report and non-zero on a sample High advisory — d0a2959
+- [x] 1.6 On the change PR, both checks succeed — d0a2959
 
 #### Manual
 
-- [ ] 1.7 The gate log shows the EF "No changes" message and the expected executed count
-- [ ] 1.8 Any first-run Linux failure was classified and handled
+- [x] 1.7 The gate log shows the EF "No changes" message and the expected executed count — d0a2959
+- [x] 1.8 Any first-run Linux failure was classified and handled — d0a2959
 
 ### Phase 2: `main` Ruleset
 
 #### Automated
 
-- [ ] 2.1 Exactly one active ruleset named main exists
-- [ ] 2.2 Effective rules on main include deletion, non_fast_forward, pull_request and strict required gate check
-- [ ] 2.3 The live ruleset's bypass list is empty
+- [x] 2.1 Exactly one active ruleset named main exists
+- [x] 2.2 Effective rules on main include deletion, non_fast_forward, pull_request and strict required gate check
+- [x] 2.3 The live ruleset's bypass list is empty
 
 #### Manual
 
