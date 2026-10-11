@@ -497,13 +497,13 @@ Not applicable: no schema or data changes.
 
 #### Automated
 
-- [ ] 1.1 Build succeeds with no new warnings
-- [ ] 1.2 The smoke test passes
-- [ ] 1.3 The full suite passes
+- [x] 1.1 Build succeeds with no new warnings
+- [x] 1.2 The smoke test passes
+- [x] 1.3 The full suite passes
 
 #### Manual
 
-- [ ] 1.4 Owner confirms the bUnit package version and the support-folder layout
+- [x] 1.4 Owner confirms the bUnit package version and the support-folder layout
 
 ### Phase 2: Page outcome → state tests
 
