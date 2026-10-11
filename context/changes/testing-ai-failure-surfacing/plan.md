@@ -497,25 +497,25 @@ Not applicable: no schema or data changes.
 
 #### Automated
 
-- [x] 1.1 Build succeeds with no new warnings
-- [x] 1.2 The smoke test passes
-- [x] 1.3 The full suite passes
+- [x] 1.1 Build succeeds with no new warnings — 33eca9d
+- [x] 1.2 The smoke test passes — 33eca9d
+- [x] 1.3 The full suite passes — 33eca9d
 
 #### Manual
 
-- [x] 1.4 Owner confirms the bUnit package version and the support-folder layout
+- [x] 1.4 Owner confirms the bUnit package version and the support-folder layout — 33eca9d
 
 ### Phase 2: Page outcome → state tests
 
 #### Automated
 
-- [ ] 2.1 Page tests pass
-- [ ] 2.2 The full suite passes
+- [x] 2.1 Page tests pass
+- [x] 2.2 The full suite passes
 
 #### Manual
 
-- [ ] 2.3 Owner spot-checks expected strings come from the cited archive plans
-- [ ] 2.4 Owner breaks one branch, confirms a page test fails, then reverts
+- [x] 2.3 Owner spot-checks expected strings come from the cited archive plans
+- [x] 2.4 Owner breaks one branch, confirms a page test fails, then reverts
 
 ### Phase 3: Products-load retry (test-first)
 

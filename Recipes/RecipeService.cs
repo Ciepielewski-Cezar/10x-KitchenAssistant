@@ -4,8 +4,10 @@ using Microsoft.Extensions.Options;
 
 namespace KitchenAssistant.Recipes;
 
-// The only entry point pages use for recipes. Sends the generator only this user's products, and turns every
-// generation failure into a Failed result within one deadline for the whole click.
+// The only entry point pages use for recipes. Sends the generator only this user's products, within one deadline for the
+// whole click. Turns the known generation failures into a Failed result: a cancellation the caller did not ask for (the
+// deadline or the AI client's per-attempt timeout), RecipeGenerationException, AnthropicException, and an answer with
+// nothing usable. Any other exception, including one from loading the products, propagates to the caller.
 public class RecipeService(
     ProductService productService,
     IRecipeGenerator generator,
