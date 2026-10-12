@@ -486,3 +486,10 @@ TestResults/
 
 # Stryker.NET mutation output
 StrykerOutput/
+
+# Playwright
+playwright/.auth/
+playwright-report/
+blob-report/
+playwright/.cache/
+.playwright-cli/
