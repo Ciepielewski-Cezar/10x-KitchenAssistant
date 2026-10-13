@@ -315,14 +315,14 @@ None. Once PR #27 merges, the next `/10x-test-plan` run reads the new §3 state:
 
 #### Automated
 
-- [x] 2.1 §6.4 names the seed, waitForInteractive and the two-user pattern with no TBD
-- [x] 2.2 Every path the cookbook cites exists
-- [x] 2.3 §6 still has exactly six sub-sections
-- [x] 2.4 §8 dates read 2026-10-13
-- [ ] 2.5 The commit touches only the planned files
-- [ ] 2.6 PR #27 checks pass
+- [x] 2.1 §6.4 names the seed, waitForInteractive and the two-user pattern with no TBD — 72b54b9
+- [x] 2.2 Every path the cookbook cites exists — 72b54b9
+- [x] 2.3 §6 still has exactly six sub-sections — 72b54b9
+- [x] 2.4 §8 dates read 2026-10-13 — 72b54b9
+- [x] 2.5 The commit touches only the planned files — 72b54b9
+- [x] 2.6 PR #27 checks pass — 736e704
 
 #### Manual
 
-- [x] 2.7 §6.4 reads as a usable recipe
-- [x] 2.8 testing-ci-test-gate Phase 3 note is clear and its Progress is untouched
+- [x] 2.7 §6.4 reads as a usable recipe — 72b54b9
+- [x] 2.8 testing-ci-test-gate Phase 3 note is clear and its Progress is untouched — 72b54b9
