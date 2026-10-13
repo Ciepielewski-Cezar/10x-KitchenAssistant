@@ -1,0 +1,11 @@
+{
+  "name": "kitchen-assistant-e2e",
+  "private": true,
+  "description": "Playwright E2E tests for the Kitchen Assistant app (the app itself is .NET; see context/foundation/test-stack.md).",
+  "scripts": {
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0"
+  }
+}

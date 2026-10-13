@@ -10,6 +10,8 @@
     <ContainerRepository>kitchen-assistant</ContainerRepository>
     <!-- The test project sits inside this project's folder; keep its sources out of the app's default globs. -->
     <DefaultItemExcludes>$(DefaultItemExcludes);KitchenAssistant.Tests/**</DefaultItemExcludes>
+    <!-- Playwright E2E (Node) lives here too; keep its files, saved session and reports out of the build and publish output. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);package.json;package-lock.json;playwright.config.ts;tests/**;playwright/**;test-results/**;playwright-report/**;blob-report/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
