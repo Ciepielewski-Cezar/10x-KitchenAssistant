@@ -1,10 +1,10 @@
 ---
 change_id: test-plan-refresh-2026-10-13
 title: Refresh test-plan.md with stale facts and approved risk #3/#4 edits (2026-10-13)
-status: implemented
+status: archived
 created: 2026-10-13
 updated: 2026-10-13
-archived_at: null
+archived_at: 2026-10-13T17:28:49Z
 ---
 
 ## Notes
