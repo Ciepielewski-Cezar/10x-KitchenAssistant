@@ -241,14 +241,79 @@ proves the `disabled` attributes, not the server-side re-entry guard.
 
 ### 6.3 Adding an HTTP integration test (auth, ownership, composition)
 
-- TBD — see §3 Phase 2 for the "anonymous redirect / cross-user isolation /
-  Production composition fails fast" pattern.
+- TBD — see §3 Phase 2 for the "anonymous redirect / prerendered-HTML
+  isolation / Production composition fails fast" pattern. Risk #4's browser
+  facet (user B's live products page never lists user A's product) is
+  already covered by an E2E spec (§6.4); don't re-prove it here.
 
 ### 6.4 Adding an e2e test
 
-- TBD — see §3 Phase 2 (optional sub-phase) for the "sign in → add product
-  → generate → open details" critical-flow pattern with the fake generator.
-  Add an e2e test only for a cross-page flow no cheaper layer covers.
+Pattern: "user action over the live interactive connection -> state a real browser sees".
+Write one only for a flow that needs the live interactive connection or several pages and
+that no bUnit (§6.2) or HTTP (§6.3) test can cover. Reference: `tests/e2e/seed.spec.ts`,
+the exemplar to copy. Setup (`.env` test users), port, config and run commands are in
+[`context/foundation/test-stack.md`](test-stack.md).
+
+Building blocks:
+
+- `waitForInteractive(page)` (`tests/e2e/support/blazor.ts`): resolves once every prerendered
+  component is live on its circuit. Call it after `goto`/`reload` and before any
+  non-idempotent action (e.g. "Dodaj", "Usuń") on an `InteractiveServer` page; before that,
+  clicks are lost or post a static form. It's the one DOM query the suite allows, so add any
+  other circuit helper there, not in a spec.
+- The `setup` project with `storageState`: `auth.setup.ts` signs in user A (`E2E_USERNAME`/
+  `E2E_PASSWORD`) and saves `playwright/.auth/user.json`; the `chromium` project depends on
+  it, so `page` is already signed in as user A.
+- The two-user pattern from `products-cross-user-isolation.spec.ts`: `base.extend` a `pageB`
+  fixture that opens its own browser context with
+  `storageState: 'playwright/.auth/user-b.json'` (written by `auth-b.setup.ts`, credentials
+  `E2E_USERNAME_B`/`E2E_PASSWORD_B`) and closes it after `use`; `page` stays user A. A second
+  fixture builds the unique names and records them as a `test-data` annotation.
+
+Rules:
+
+- role, label and text locators (`getByRole`, `getByLabel`, `getByText`); `getByTestId`
+  only when accessibility attributes are ambiguous; no CSS, XPath or DOM structure;
+- no `waitForTimeout`: wait for state (`toBeVisible`, `toBeHidden`, `toHaveCount`, `waitForURL`);
+- unique names with a `Date.now()` suffix, plus `testInfo.workerIndex` in fixtures;
+- cleanup through the UI, asserted (`toBeHidden` / `toHaveCount(0)`), so a failed cleanup
+  turns the run red; in multi-user specs it goes in `afterEach` and tolerates a test that
+  failed before adding (see `removeProduct`);
+- a header comment naming the risk (`#N` in this file) and the facet the spec proves, plus
+  `seed: tests/e2e/seed.spec.ts`.
+
+Recipe for a new test:
+
+1. Copy the seed; write the header comment and a unique name.
+2. `goto`, `waitForInteractive`, then act through role/label locators.
+3. Assert the user-visible result; for persistence, `reload()` and assert again.
+4. Clean up through the UI (after another `waitForInteractive`) and assert it is gone.
+
+```ts
+test('a product added over the live interactive connection persists after page reload', async ({ page }) => {
+  const productName = `E2E produkt ${Date.now()}`;
+  await page.goto('/products');
+  await waitForInteractive(page); // "Dodaj" creates a record: wait once for the circuit
+
+  await page.getByLabel('Nazwa').fill(productName);
+  await page.getByRole('radio', { name: 'Zużyj w pierwszej kolejności' }).check();
+  await page.getByRole('button', { name: 'Dodaj' }).click();
+  const product = page.getByRole('listitem').filter({ hasText: productName });
+  await expect(product).toBeVisible();
+
+  await page.reload();
+  await expect(product).toBeVisible();
+
+  await waitForInteractive(page);
+  await page.getByRole('button', { name: `Usuń ${productName}` }).click();
+  await product.getByRole('button', { name: 'Usuń', exact: true }).click();
+  await expect(product).toBeHidden();
+});
+```
+
+Caveat: E2E runs against the Development build with the Fake generator and LocalDB, and
+isn't in CI (§5). It proves nothing about the Production composition (§6.3, §6.5), and
+leftover data lands in the developer's LocalDB, which is why cleanup is asserted.
 
 ### 6.5 Post-deploy smoke
 
@@ -296,9 +361,10 @@ contributors should respect these unless the underlying assumption changes.
 
 ## 8. Freshness Ledger
 
-- Strategy (§1–§5) last reviewed: 2026-10-11
-- Stack versions last verified: 2026-10-11
-- AI-native tool references last verified: 2026-10-11
+- Strategy (§1–§5) last reviewed: 2026-10-13
+- Stack versions last verified: 2026-10-13
+- AI-native tool references last verified: 2026-10-13
+- Hot-spots rechecked 2026-10-12 (30 days): `Components/Pages` 19, `Recipes/` 11 commits; scope and §2 order unchanged.
 
 Refresh (`/10x-test-plan --refresh`) when:
 

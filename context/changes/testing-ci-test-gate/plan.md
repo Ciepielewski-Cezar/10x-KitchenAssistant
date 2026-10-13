@@ -205,6 +205,8 @@ Prove that each false-green path is blocked by the live ruleset. Then record the
 - Append a Phase 1 entry to §6.6: the zero-test exit-0 finding, the proof PR numbers, and the warnings-stay-warnings decision that §5 overstates (for `/10x-test-plan --refresh`).
 - Do not edit §1–§5. The §3 Status column is updated by `/10x-test-plan`.
 
+**Note (test-plan refresh 2026-10-13):** The "Adding a gate" pattern is already written, as a note under test-plan §5 (§6.4 is now the E2E cookbook, so don't write there). Update that §5 note only if the proof PRs show something new. Put the §6.6 entry under a heading naming this change (`testing-ci-test-gate`), not "Phase 1" (rollout Phase 1 is AI failure surfacing). The warnings-stay-warnings decision is already reflected in §5, so the §6.6 entry needs only the zero-test exit-0 finding and the proof PR numbers.
+
 #### 3. Deployment plan alignment
 
 **File**: `context/changes/deployment/deployment-plan.md`

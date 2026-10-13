@@ -300,29 +300,29 @@ None. Once PR #27 merges, the next `/10x-test-plan` run reads the new §3 state:
 
 #### Automated
 
-- [x] 1.1 §1 is byte-identical to the 83fd4fb baseline
-- [x] 1.2 §2 has no file:line anchors
-- [x] 1.3 Risk numbers, order, impact and likelihood are unchanged
-- [x] 1.4 §3 Phase 1 row reads complete with the archive folder
-- [x] 1.5 Stale phrases are gone
+- [x] 1.1 §1 is byte-identical to the 83fd4fb baseline — eb6cf18
+- [x] 1.2 §2 has no file:line anchors — eb6cf18
+- [x] 1.3 Risk numbers, order, impact and likelihood are unchanged — eb6cf18
+- [x] 1.4 §3 Phase 1 row reads complete with the archive folder — eb6cf18
+- [x] 1.5 Stale phrases are gone — eb6cf18
 
 #### Manual
 
-- [x] 1.6 Risk #2/#3/#4 edits and §3 paragraphs match the approved wording
-- [x] 1.7 §5 table matches ci.yml, the ruleset and the hooks
+- [x] 1.6 Risk #2/#3/#4 edits and §3 paragraphs match the approved wording — eb6cf18
+- [x] 1.7 §5 table matches ci.yml, the ruleset and the hooks — eb6cf18
 
 ### Phase 2: Cookbook, Ledger and Cross-Plan Note
 
 #### Automated
 
-- [ ] 2.1 §6.4 names the seed, waitForInteractive and the two-user pattern with no TBD
-- [ ] 2.2 Every path the cookbook cites exists
-- [ ] 2.3 §6 still has exactly six sub-sections
-- [ ] 2.4 §8 dates read 2026-10-13
+- [x] 2.1 §6.4 names the seed, waitForInteractive and the two-user pattern with no TBD
+- [x] 2.2 Every path the cookbook cites exists
+- [x] 2.3 §6 still has exactly six sub-sections
+- [x] 2.4 §8 dates read 2026-10-13
 - [ ] 2.5 The commit touches only the planned files
 - [ ] 2.6 PR #27 checks pass
 
 #### Manual
 
-- [ ] 2.7 §6.4 reads as a usable recipe
-- [ ] 2.8 testing-ci-test-gate Phase 3 note is clear and its Progress is untouched
+- [x] 2.7 §6.4 reads as a usable recipe
+- [x] 2.8 testing-ci-test-gate Phase 3 note is clear and its Progress is untouched
