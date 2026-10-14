@@ -571,27 +571,27 @@ the AI (risk #3).
 
 #### Automated
 
-- [x] 1.1 `dotnet build` succeeds with the new package and factory
-- [x] 1.2 `dotnet test --filter "FullyQualifiedName~ProductionCompositionTests"` passes
-- [x] 1.3 Deliberate break: temporarily changing `MaxRetries = 1` to `2` in `Program.cs` turns the client-settings test red (then revert)
-- [x] 1.4 `dotnet test` (whole suite) passes, and `scripts/ci/assert-tests-ran.ps1` reports executed tests
+- [x] 1.1 `dotnet build` succeeds with the new package and factory — b2621ea
+- [x] 1.2 `dotnet test --filter "FullyQualifiedName~ProductionCompositionTests"` passes — b2621ea
+- [x] 1.3 Deliberate break: temporarily changing `MaxRetries = 1` to `2` in `Program.cs` turns the client-settings test red (then revert) — b2621ea
+- [x] 1.4 `dotnet test` (whole suite) passes, and `scripts/ci/assert-tests-ran.ps1` reports executed tests — b2621ea
 
 #### Manual
 
-- [x] 1.5 First-run pins recorded in the phase commit message: `Program` visibility mechanism used, and that `AnthropicClient.Timeout`/`MaxRetries`/`ApiKey` were readable
+- [x] 1.5 First-run pins recorded in the phase commit message: `Program` visibility mechanism used, and that `AnthropicClient.Timeout`/`MaxRetries`/`ApiKey` were readable — b2621ea
 
 ### Phase 2: Access tests (anonymous redirect and prerendered isolation)
 
 #### Automated
 
-- [ ] 2.1 `dotnet test --filter "FullyQualifiedName~AccessTests"` passes on unchanged app code
-- [ ] 2.2 Deliberate break: temporarily removing `@attribute [Authorize]` from `Products.razor` turns the anonymous `/products` case red (then revert)
-- [ ] 2.3 Deliberate break: temporarily replacing the user id passed to `GetProductsAsync` in `Products.razor` with another seeded user's id turns the isolation test red (then revert)
-- [ ] 2.4 `dotnet test` (whole suite) passes
+- [x] 2.1 `dotnet test --filter "FullyQualifiedName~AccessTests"` passes on unchanged app code
+- [x] 2.2 Deliberate break: temporarily removing `@attribute [Authorize]` from `Products.razor` turns the anonymous `/products` case red (then revert)
+- [x] 2.3 Deliberate break: temporarily replacing the user id passed to `GetProductsAsync` in `Products.razor` with another seeded user's id turns the isolation test red (then revert)
+- [x] 2.4 `dotnet test` (whole suite) passes
 
 #### Manual
 
-- [ ] 2.5 The pinned `Location` literal and the prerendered `/products` content were observed (not assumed) on the first run, noted in the phase commit message
+- [x] 2.5 The pinned `Location` literal and the prerendered `/products` content were observed (not assumed) on the first run, noted in the phase commit message
 
 ### Phase 3: Fallback authorization policy (secure by default)
 

@@ -22,7 +22,7 @@ public class ProductionCompositionTests
     [Fact]
     public void Fake_generator_stops_startup()
     {
-        using var factory = new ProductionAppFactory(("Recipes:Generator", "Fake"));
+        using var factory = ProductionAppFactory.With(("Recipes:Generator", "Fake"));
 
         var ex = Assert.Throws<InvalidOperationException>(() => factory.CreateNoRedirectClient());
 
@@ -32,7 +32,7 @@ public class ProductionCompositionTests
     [Fact]
     public void Unknown_effort_stops_startup()
     {
-        using var factory = new ProductionAppFactory(("Recipes:Effort", "extreme"));
+        using var factory = ProductionAppFactory.With(("Recipes:Effort", "extreme"));
 
         Assert.ThrowsAny<Exception>(() => factory.CreateNoRedirectClient());
     }
@@ -40,7 +40,7 @@ public class ProductionCompositionTests
     [Fact]
     public void Non_positive_product_cap_stops_startup()
     {
-        using var factory = new ProductionAppFactory(("Recipes:MaxProducts", "0"));
+        using var factory = ProductionAppFactory.With(("Recipes:MaxProducts", "0"));
 
         var ex = Assert.Throws<InvalidOperationException>(() => factory.CreateNoRedirectClient());
 
@@ -54,7 +54,7 @@ public class ProductionCompositionTests
         var emptyRoot = Directory.CreateTempSubdirectory().FullName;
         try
         {
-            using var factory = new ProductionAppFactory(("ConnectionStrings:DefaultConnection", null), ("contentRoot", emptyRoot));
+            using var factory = ProductionAppFactory.With(("ConnectionStrings:DefaultConnection", null), ("contentRoot", emptyRoot));
 
             var ex = Assert.ThrowsAny<Exception>(() => factory.CreateNoRedirectClient());
 
@@ -82,7 +82,7 @@ public class ProductionCompositionTests
     [Fact]
     public async Task Missing_api_key_still_starts_but_logs_a_warning()
     {
-        using var factory = new ProductionAppFactory(("ANTHROPIC_API_KEY", ""));
+        using var factory = ProductionAppFactory.With(("ANTHROPIC_API_KEY", ""));
         using var client = factory.CreateNoRedirectClient();
 
         var response = await client.GetAsync("/healthz");

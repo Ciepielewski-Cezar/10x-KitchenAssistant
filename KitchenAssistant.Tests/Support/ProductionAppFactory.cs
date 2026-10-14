@@ -26,12 +26,21 @@ public sealed class ProductionAppFactory : WebApplicationFactory<Program>
         ["ANTHROPIC_API_KEY"] = TestApiKey,
     };
 
-    public ProductionAppFactory(params (string Key, string? Value)[] overrides)
+    // xUnit class fixtures allow a single public parameterless constructor; use With for per-test settings.
+    public ProductionAppFactory()
     {
+    }
+
+    // Must be called before the host is created (the first CreateClient / Services access).
+    public static ProductionAppFactory With(params (string Key, string? Value)[] overrides)
+    {
+        var factory = new ProductionAppFactory();
         foreach (var (key, value) in overrides)
         {
-            _settings[key] = value;
+            factory._settings[key] = value;
         }
+
+        return factory;
     }
 
     public CapturedLogs Logs { get; } = new();
