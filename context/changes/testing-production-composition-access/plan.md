@@ -597,17 +597,17 @@ the AI (risk #3).
 
 #### Automated
 
-- [x] 3.1 `dotnet test --filter "FullyQualifiedName~AuthorizationPolicyTests"` passes
-- [x] 3.2 Phase 1 and Phase 2 tests still pass unchanged: `dotnet test`
-- [x] 3.3 Deliberate break: temporarily adding `@attribute [AllowAnonymous]` to `Components/Account/Pages/_Imports.razor` turns the Manage protected cases red (then revert)
-- [x] 3.4 Deliberate break: temporarily adding a page `@page "/tmp-guard"` without listing it turns the coverage guard red (then delete)
-- [x] 3.5 Deliberate break: temporarily removing `.AllowAnonymous()` from `MapStaticAssets()` turns the static-asset case red (then revert)
-- [x] 3.6 `dotnet ef migrations has-pending-model-changes` exits 0
+- [x] 3.1 `dotnet test --filter "FullyQualifiedName~AuthorizationPolicyTests"` passes — d5476cd
+- [x] 3.2 Phase 1 and Phase 2 tests still pass unchanged: `dotnet test` — d5476cd
+- [x] 3.3 Deliberate break: temporarily adding `@attribute [AllowAnonymous]` to `Components/Account/Pages/_Imports.razor` turns the Manage protected cases red (then revert) — d5476cd
+- [x] 3.4 Deliberate break: temporarily adding a page `@page "/tmp-guard"` without listing it turns the coverage guard red (then delete) — d5476cd
+- [x] 3.5 Deliberate break: temporarily removing `.AllowAnonymous()` from `MapStaticAssets()` turns the static-asset case red (then revert) — d5476cd
+- [x] 3.6 `dotnet ef migrations has-pending-model-changes` exits 0 — d5476cd
 
 #### Manual
 
-- [x] 3.7 Local E2E still green against the Development build: `npx playwright test` (sign-in, enhanced navigation, cross-user spec)
-- [x] 3.8 In a browser, anonymous: home page styled, Login and Register work end to end, and `/Account/Manage` redirects to login
+- [x] 3.7 Local E2E still green against the Development build: `npx playwright test` (sign-in, enhanced navigation, cross-user spec) — d5476cd
+- [x] 3.8 In a browser, anonymous: home page styled, Login and Register work end to end, and `/Account/Manage` redirects to login — d5476cd
 
 ### Phase 4: Post-deploy smoke and documentation
 
