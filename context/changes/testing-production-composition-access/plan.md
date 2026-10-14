@@ -584,14 +584,14 @@ the AI (risk #3).
 
 #### Automated
 
-- [x] 2.1 `dotnet test --filter "FullyQualifiedName~AccessTests"` passes on unchanged app code
-- [x] 2.2 Deliberate break: temporarily removing `@attribute [Authorize]` from `Products.razor` turns the anonymous `/products` case red (then revert)
-- [x] 2.3 Deliberate break: temporarily replacing the user id passed to `GetProductsAsync` in `Products.razor` with another seeded user's id turns the isolation test red (then revert)
-- [x] 2.4 `dotnet test` (whole suite) passes
+- [x] 2.1 `dotnet test --filter "FullyQualifiedName~AccessTests"` passes on unchanged app code — c18f61f
+- [x] 2.2 Deliberate break: temporarily removing `@attribute [Authorize]` from `Products.razor` turns the anonymous `/products` case red (then revert) — c18f61f
+- [x] 2.3 Deliberate break: temporarily replacing the user id passed to `GetProductsAsync` in `Products.razor` with another seeded user's id turns the isolation test red (then revert) — c18f61f
+- [x] 2.4 `dotnet test` (whole suite) passes — c18f61f
 
 #### Manual
 
-- [x] 2.5 The pinned `Location` literal and the prerendered `/products` content were observed (not assumed) on the first run, noted in the phase commit message
+- [x] 2.5 The pinned `Location` literal and the prerendered `/products` content were observed (not assumed) on the first run, noted in the phase commit message — c18f61f
 
 ### Phase 3: Fallback authorization policy (secure by default)
 
