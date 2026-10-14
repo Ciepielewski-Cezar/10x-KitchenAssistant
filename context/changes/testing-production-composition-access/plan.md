@@ -613,13 +613,13 @@ the AI (risk #3).
 
 #### Automated
 
-- [x] 4.1 `npx playwright test -c playwright.smoke.config.ts --list` lists the setup and both smoke tests without starting a server
-- [x] 4.2 `npx playwright test` (the E2E config) still lists only `tests/e2e` specs
-- [x] 4.3 `dotnet test` passes (no regressions from earlier phases)
+- [x] 4.1 `npx playwright test -c playwright.smoke.config.ts --list` lists the setup and both smoke tests without starting a server — 75d4220
+- [x] 4.2 `npx playwright test` (the E2E config) still lists only `tests/e2e` specs — 75d4220
+- [x] 4.3 `dotnet test` passes (no regressions from earlier phases) — 75d4220
 
 #### Manual
 
-- [x] 4.4 `./scripts/local-prod.ps1 -Reset` with an empty `ANTHROPIC_API_KEY`, then `npm run smoke` with `SMOKE_BASE_URL=http://localhost:8090`: the app starts after migrating the empty SQL Server database, setup registers the smoke user, the healthz test passes and the generation test fails on the missing recipes (red, as designed)
-- [x] 4.5 With a valid dev key in `.env`, `./scripts/local-prod.ps1 -NoBuild` then `npm run smoke`: all green
-- [x] 4.6 Re-running `npm run smoke` reuses the existing smoke user (login, no second registration) and leaves no smoke product behind
-- [x] 4.7 Docs updates read correctly: test-plan §3/§4/§5/§6, test-stack `## Smoke`, deployment-plan notes
+- [x] 4.4 `./scripts/local-prod.ps1 -Reset` with an empty `ANTHROPIC_API_KEY`, then `npm run smoke` with `SMOKE_BASE_URL=http://localhost:8090`: the app starts after migrating the empty SQL Server database, setup registers the smoke user, the healthz test passes and the generation test fails on the missing recipes (red, as designed) — 75d4220
+- [x] 4.5 With a valid dev key in `.env`, `./scripts/local-prod.ps1 -NoBuild` then `npm run smoke`: all green — 75d4220
+- [x] 4.6 Re-running `npm run smoke` reuses the existing smoke user (login, no second registration) and leaves no smoke product behind — 75d4220
+- [x] 4.7 Docs updates read correctly: test-plan §3/§4/§5/§6, test-stack `## Smoke`, deployment-plan notes — 75d4220
