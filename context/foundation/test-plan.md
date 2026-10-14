@@ -78,14 +78,14 @@ orchestrator updates Status as artifacts appear on disk.
 | # | Phase name | Goal (one line) | Risks covered | Test types | Status | Change folder |
 |---|---|---|---|---|---|---|
 | 1 | AI failure surfacing | Prove every AI outcome lands on the recipes page as a clear, recoverable state and per-request caps hold | #1, #6 | unit + component | complete | archive/2026-10-11-testing-ai-failure-surfacing |
-| 2 | Production composition and access | Prove Production wiring fails fast, access is enforced end-to-end, and the deployed app works beyond liveness | #3, #4 | integration + post-deploy smoke (optional agent-driven browser smoke) + optional e2e sub-phase | not started | — |
+| 2 | Production composition and access | Prove Production wiring fails fast, access is enforced end-to-end, and the deployed app works beyond liveness | #3, #4 | integration + post-deploy smoke | implemented (manual smoke runs pending) | testing-production-composition-access |
 | 3 | Scoring oracle audit | Prove score, order and hidden-set tests use PRD-derived expectations rather than implementation-copied values | #5 | unit | not started | — |
 
 Order rationale: Phase 1 addresses the top interview concern in the
 highest-churn area. Phase 2 lands alongside F-01. Phase 3 has the lowest
 marginal risk because unit coverage is already broad.
 
-Phase 2 optional e2e sub-phase (decision 2026-10-11, narrowed 2026-10-13):
+Phase 2 optional e2e sub-phase: **dropped 2026-10-14, covered by the post-deploy smoke** (`tests/smoke/`, §6.5), which runs sign in → add a product → generate recipes → open details over the live interactive connection. Original rationale (decision 2026-10-11, narrowed 2026-10-13):
 the critical flow is sign in → add a product → generate recipes → open
 details, against the local app with the fake generator (no AI cost). The
 E2E seed (`tests/e2e/seed.spec.ts`) already covers the sign in → add a
@@ -126,7 +126,7 @@ files; every PR runs the CI `gate` check; still no HTTP-pipeline tests.
 | AI boundary | Fake recipe generator (in-app, Development-only) | n/a | Replaces Anthropic at the boundary; no real-API tests in automation. |
 | component | bUnit — checked: 2026-10-11 | bunit 2.11.3 | Interactive page states without a browser. Shipped in Phase 1; support code in `KitchenAssistant.Tests/Support/`. |
 | mutation (selective gate) | Stryker.NET (`dotnet-stryker`) — checked: 2026-10-11 | 5.0.0 (local tool) | Ad hoc after a risk phase, scoped with `--mutate`; not a per-commit gate. |
-| HTTP integration | `Microsoft.AspNetCore.Mvc.Testing` (`WebApplicationFactory`) with a test auth scheme — checked: 2026-10-11 | none yet — see Phase 2 | Real middleware, authorization and DI composition. |
+| HTTP integration | `Microsoft.AspNetCore.Mvc.Testing` (`WebApplicationFactory`), signing in through the real login form — checked: 2026-10-14 | Mvc.Testing 10.0.13 | Real `Program.cs` in Production on in-memory SQLite: middleware, authorization and DI composition. Shipped in Phase 2; `KitchenAssistant.Tests/Http/` and `Support/ProductionAppFactory.cs`. |
 | e2e | Playwright Test (`@playwright/test`, TypeScript) — checked: 2026-10-13 | 1.64.0 | Config, commands, auth setup and seed in `context/foundation/test-stack.md`. Runs locally against the Development build (fake generator, LocalDB); not in CI. A few risk-specific specs, not a suite. |
 | agent hooks (Claude Code) | `.claude/settings.json` → `.claude/hooks/check-edited-file.mjs` (per edit) and `.claude/hooks/end-of-turn.mjs` (Stop) — checked: 2026-10-13 | n/a | Wired in `3ba9bcd`; covered by `KitchenAssistant.Tests/Tooling/AgentHooksTests.cs`. Gates in §5. |
 | (optional) AI-native | Agent-driven browser smoke (built-in browser / Playwright MCP) — checked: 2026-10-11 | n/a | Post-deploy only: sign in, generate recipes over the live interactive connection. When NOT to use: per-PR CI, or any state bUnit already proves. |
@@ -149,9 +149,9 @@ phase lands; before that, the gate is `planned`.
 | build, warnings as errors | local (agent loop): end-of-turn hook | wired (`3ba9bcd`) | nullable and other warnings CI lets through |
 | pending model changes check | CI `gate`; end-of-turn hook when `Data/` changed; local before commit (CLAUDE.md) | required by the `main` ruleset | forgotten migration that would stop startup |
 | unit + component tests, with a zero-executed guard | CI `gate`; end-of-turn hook (whole unit suite) | required by the `main` ruleset | logic and page-state regressions; a run where no tests executed |
-| HTTP integration tests | CI `gate` (as part of the test run) | required after §3 Phase 2 | access and Production-composition regressions |
+| HTTP integration tests | CI `gate` (as part of the test run) | required (landed with §3 Phase 2) | access and Production-composition regressions |
 | e2e (local, fake generator): `npx playwright test` | local only; not in CI | optional | cross-page flow or circuit-identity breaking over the live interactive connection |
-| post-deploy smoke (signed-in page + interactive connection) | after deploy | required after §3 Phase 2 | environment-specific failures liveness misses |
+| post-deploy smoke (signed-in page + interactive connection + real generation): `npm run smoke` | after deploy | required after §3 Phase 2; pending F-01 (`deploy.yml`), until then run against `local-prod` | environment-specific failures liveness misses |
 | post-edit hook: edited file's diagnostics + its related tests | local (agent loop) | wired (`3ba9bcd`) | regressions at edit time |
 | vulnerable packages (High/Critical) | CI `vulnerable-packages` job | advisory, not required | known-vulnerable dependencies |
 
@@ -241,10 +241,10 @@ proves the `disabled` attributes, not the server-side re-entry guard.
 
 ### 6.3 Adding an HTTP integration test (auth, ownership, composition)
 
-- TBD — see §3 Phase 2 for the "anonymous redirect / prerendered-HTML
-  isolation / Production composition fails fast" pattern. Risk #4's browser
-  facet (user B's live products page never lists user A's product) is
-  already covered by an E2E spec (§6.4); don't re-prove it here.
+- **Host:** `ProductionAppFactory` (`KitchenAssistant.Tests/Support/`) runs the real `Program.cs` in Production on in-memory SQLite. Per-test settings go through `ProductionAppFactory.With(...)`, which uses `UseSetting` because `Program.cs` reads the connection string while the builder is created. Share one factory per class with `IClassFixture`; startup-failure facts use a fresh one.
+- **Sign in** with `HttpSignIn` (`SeedUserAsync`, `SeedProductAsync`, `SignInAsync`): the real login form and antiforgery token, so the cookie wiring is proved too. No test auth scheme.
+- **Oracles are literal:** status codes, `ReturnUrl=` fragments, Polish page strings and hand-written route lists (`AuthorizationPolicyTests`). A coverage guard fails until every new `@page` is on the public or protected list.
+- Risk #4's browser facet (user B's live products page never lists user A's product) stays in the E2E spec (§6.4); don't re-prove it here.
 
 ### 6.4 Adding an e2e test
 
@@ -317,7 +317,10 @@ leftover data lands in the developer's LocalDB, which is why cleanup is asserted
 
 ### 6.5 Post-deploy smoke
 
-- TBD — see §3 Phase 2.
+- Run `npm run smoke` (config `playwright.smoke.config.ts`, specs in `tests/smoke/`) with `SMOKE_BASE_URL`, `SMOKE_USERNAME` and `SMOKE_PASSWORD`. Details in `test-stack.md`, `## Smoke`.
+- It checks `/healthz`, signs in a dedicated account (registering it on a fresh environment), adds a product over the live interactive connection, generates recipes with the real AI, opens one, and removes the product. It spends one real AI call per run.
+- Red means generation is unusable (a missing or invalid key included), which startup deliberately does not catch.
+- `deploy.yml` (F-01) will run it after deploy; until then run it against `./scripts/local-prod.ps1`.
 
 ### 6.6 Per-rollout-phase notes
 
@@ -342,6 +345,14 @@ leftover data lands in the developer's LocalDB, which is why cleanup is asserted
 - **Owned by Phase 2, not pinned here:** `MaxRetries = 1` and the 60 s per-attempt timeout
   (`Program.cs:65,68`). They are Production composition, so the Production-composition
   test in Phase 2 owns them.
+
+#### Phase 2: Production composition and access (change `testing-production-composition-access`)
+
+- **Shipped:** `ProductionAppFactory` and `HttpSignIn`; `ProductionCompositionTests` (Anthropic generator; Fake, bad effort, zero cap and missing connection string stop startup; `AnthropicClient` 60 s timeout, 1 retry and key; `/dev/ui` 404; `/healthz`); `AccessTests` (anonymous redirect, two-user prerendered isolation); a fallback authorization policy with `AuthorizationPolicyTests`; the post-deploy smoke.
+- **A missing `ANTHROPIC_API_KEY` stays a warning** (deployment plan decision): login must keep working without AI. The test pins the warning, and the smoke goes red when generation is unusable.
+- **Accepted consequence:** under the fallback policy an anonymous visitor to an unknown URL is redirected to login; signed-in users still get `/not-found`.
+- **Test host quirks:** it needs `UseStaticWebAssets()` to serve `blazor.web.js` in Production, and `ExternalLogin` / `ConfirmEmailChange` redirect to login themselves, so the public-page check looks for the `ReturnUrl` that only an authorization challenge adds.
+- **Not covered in CI:** the startup migration on SQL Server. The smoke against `local-prod.ps1 -Reset` proves it.
 
 ## 7. What We Deliberately Don't Test
 

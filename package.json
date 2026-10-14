@@ -3,7 +3,8 @@
   "private": true,
   "description": "Playwright E2E tests for the Kitchen Assistant app (the app itself is .NET; see context/foundation/test-stack.md).",
   "scripts": {
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "smoke": "playwright test -c playwright.smoke.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.0"
