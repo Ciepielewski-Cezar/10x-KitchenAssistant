@@ -39,7 +39,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
 
             var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return TypedResults.Challenge(properties, [provider]);
-        });
+        }).AllowAnonymous();
 
         accountGroup.MapPost("/Logout", async (
             ClaimsPrincipal user,
@@ -87,7 +87,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
             var user = string.IsNullOrEmpty(username) ? null : await userManager.FindByNameAsync(username);
             var optionsJson = await signInManager.MakePasskeyRequestOptionsAsync(user);
             return TypedResults.Content(optionsJson, contentType: "application/json");
-        });
+        }).AllowAnonymous();
 
         var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();
 

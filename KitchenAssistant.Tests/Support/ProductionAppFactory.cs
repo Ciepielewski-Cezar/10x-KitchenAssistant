@@ -58,6 +58,10 @@ public sealed class ProductionAppFactory : WebApplicationFactory<Program>
             }
         }
 
+        // Production only serves framework files like blazor.web.js from the published output; the test host
+        // runs from the build output, so it needs the static web assets manifest switched on.
+        builder.UseStaticWebAssets();
+
         builder.ConfigureLogging(logging => logging.AddProvider(Logs));
 
         builder.ConfigureTestServices(services =>
@@ -114,7 +118,7 @@ public sealed class ProductionAppFactory : WebApplicationFactory<Program>
             public bool IsEnabled(LogLevel logLevel) => true;
 
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
-                entries.Enqueue((logLevel, formatter(state, exception)));
+                entries.Enqueue((logLevel, formatter(state, exception) + (exception is null ? "" : " " + exception)));
         }
     }
 }
