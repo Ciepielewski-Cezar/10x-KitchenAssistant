@@ -576,9 +576,6 @@ part of the plan.
   on it.
 - **The public-page check looks for `ReturnUrl=`, not for any `Location` to login** (Phase 3). ExternalLogin and
   ConfirmEmailChange redirect to login themselves. Only an authorization challenge adds `ReturnUrl`.
-- **The public-page check also requires a status below 500**, except on `/Account/LoginWith2fa` and
-  `/Account/LoginWithRecoveryCode` (review F4). Without a two-factor sign-in in progress, both scaffold pages throw.
-  Fixing them is a follow-up.
 - **`Logout` is anonymous** (review F6, superseding Phase 3 §3 "Logout stays under the fallback policy"). Otherwise a
   user with an expired cookie who clicks Logout ends on `/not-found`. Signing out an anonymous user is a no-op.
 - **The minimal-API Identity endpoints are pinned by hand** (review F2). `AuthorizationPolicyTests` has public and

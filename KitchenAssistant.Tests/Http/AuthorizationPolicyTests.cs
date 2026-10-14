@@ -67,10 +67,6 @@ public class AuthorizationPolicyTests : IClassFixture<ProductionAppFactory>
 
     public static TheoryData<string> Protected => new(ProtectedRoutes);
 
-    // Known template behaviour (since the scaffold): with no two-factor sign-in in progress these pages throw
-    // "Unable to load two-factor authentication user.", so an anonymous GET is a 500. Not caused by the fallback policy.
-    private static readonly string[] ThrowWithoutTwoFactorUser = ["/Account/LoginWith2fa", "/Account/LoginWithRecoveryCode"];
-
     private static string Concrete(string route) => route.Replace("{Id}", "x");
 
     [Theory]
@@ -96,14 +92,25 @@ public class AuthorizationPolicyTests : IClassFixture<ProductionAppFactory>
         var response = await client.GetAsync(Concrete(route));
 
         // Some pages redirect to login themselves when their query parameters are missing (ExternalLogin,
-        // ConfirmEmailChange). Only the authorization challenge adds a ReturnUrl, so that is what must be absent.
-        if (!ThrowWithoutTwoFactorUser.Contains(route))
-        {
-            Assert.True((int)response.StatusCode < 500, $"{route} returned {(int)response.StatusCode}.");
-        }
+        // ConfirmEmailChange) or no two-factor sign-in is in progress (LoginWith2fa, LoginWithRecoveryCode). Only the
+        // authorization challenge adds a ReturnUrl, so that is what must be absent.
+        Assert.True((int)response.StatusCode < 500, $"{route} returned {(int)response.StatusCode}.");
         Assert.False(
             response.StatusCode == HttpStatusCode.Redirect && response.Headers.Location!.ToString().Contains("ReturnUrl="),
             $"{route} challenged an anonymous visitor.");
+    }
+
+    [Theory]
+    [InlineData("/Account/LoginWith2fa")]
+    [InlineData("/Account/LoginWithRecoveryCode")]
+    public async Task Two_factor_page_without_a_two_factor_sign_in_redirects_to_login(string route)
+    {
+        using var client = _factory.CreateNoRedirectClient();
+
+        var response = await client.GetAsync(route);
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal(Login, new Uri(client.BaseAddress!, response.Headers.Location!).AbsolutePath);
     }
 
     [Theory]
