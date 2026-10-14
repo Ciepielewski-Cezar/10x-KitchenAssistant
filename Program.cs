@@ -1,4 +1,5 @@
 using Anthropic;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -16,6 +17,11 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddCascadingAuthenticationState();
+
+// Secure by default: every endpoint needs a signed-in user unless it opts out. A public page declares
+// @attribute [AllowAnonymous] in its own file, never in an _Imports.razor (see CLAUDE.md).
+builder.Services.AddAuthorizationBuilder()
+    .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
@@ -98,8 +104,8 @@ app.UseHttpsRedirection();
 
 app.UseAntiforgery();
 
-app.MapHealthChecks("/healthz");
-app.MapStaticAssets();
+app.MapHealthChecks("/healthz").AllowAnonymous();
+app.MapStaticAssets().AllowAnonymous();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
