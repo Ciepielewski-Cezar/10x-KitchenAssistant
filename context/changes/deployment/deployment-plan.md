@@ -167,7 +167,7 @@ Steps inside the script:
 - [ ] `az webapp log config -n <app> -g rg-kitchen-assistant --docker-container-logging filesystem`
 
 👤 sets the secrets. The script prompts for them, and they never appear in chat or in the repo:
-  - **Add (smoke):** `SMOKE_USERNAME` and `SMOKE_PASSWORD` for a dedicated smoke account (registered by the smoke on first run), stored as `production` environment secrets next to the Azure ones in Phase 5.
+  - **Add (smoke):** `SMOKE_USERNAME` and `SMOKE_PASSWORD` for a dedicated smoke account. Register it once by hand on the deployed site (or run the smoke once with `SMOKE_ALLOW_REGISTER=1`); never set that flag in `deploy.yml`, so a wrong secret fails the deploy instead of creating an account, stored as `production` environment secrets next to the Azure ones in Phase 5.
 - [ ] Connection string: `az webapp config connection-string set ... --connection-string-type SQLAzure --settings DefaultConnection="Server=tcp:<sql>.database.windows.net,1433;Initial Catalog=kitchen-assistant;User ID=<admin>;Password=<pw>;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"`. It arrives as `SQLAZURECONNSTR_DefaultConnection`, which ASP.NET Core maps to `ConnectionStrings:DefaultConnection`.
 - [ ] `az webapp config appsettings set ... --settings ANTHROPIC_API_KEY=<prod-key>`
 - [ ] 🤖 verify **names only** (no values): `az webapp config appsettings list --query "[].name"` and `az webapp config show --query "{ws:webSocketsEnabled, alwaysOn:alwaysOn, health:healthCheckPath}"`.
@@ -202,7 +202,7 @@ Steps inside the script:
   - Runs `needs: build`, `if: github.event_name != 'pull_request'`, with `environment: { name: production, url: https://<host> }`.
   - `permissions: { id-token: write, contents: read }`
   - Steps: `actions/download-artifact@v4` → `azure/login@v2` (client/tenant/subscription IDs from secrets) → `azure/webapps-deploy@v3` (`app-name: ${{ vars.AZURE_WEBAPP_NAME }}`, `package: webapp`) → a smoke step that curls `https://<host>/healthz` with retries (up to 12 × 10 s) and **fails the job** if it never returns 200.
-  - **Update (change `testing-production-composition-access`):** replace the `/healthz` curl with the Playwright smoke: `npm run smoke` with `SMOKE_BASE_URL=https://<host>`. It checks `/healthz`, signs in, opens `/products` over the live connection and does one real AI generation. It needs a production-capable key, spends one AI call per deploy, and reads `SMOKE_USERNAME` / `SMOKE_PASSWORD` from the `production` environment secrets.
+  - **Update (change `testing-production-composition-access`):** replace the `/healthz` curl with the Playwright smoke: `npm run smoke` with `SMOKE_BASE_URL=https://<host>`. It checks `/healthz`, signs in, opens `/products` over the live connection and does one real AI generation. It needs a production-capable key, spends one AI call per deploy, and reads `SMOKE_USERNAME` / `SMOKE_PASSWORD` from the `production` environment secrets. The `smoke-setup` project records no trace, so the sign-in never lands in `test-results/`. If the job uploads `test-results/` or `playwright-report/` on failure, keep that artifact's retention short: the `smoke` project's traces still contain the session cookie.
 - [ ] 🤖 After the first PR run, add `build` as a required status check in the `main` ruleset.
 
 | Edge case | Symptom | Fix |

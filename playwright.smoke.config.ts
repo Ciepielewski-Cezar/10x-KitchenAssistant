@@ -31,7 +31,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [
-    { name: 'smoke-setup', testMatch: /.*\.setup\.ts/ },
+    // No trace for the sign-in: it would record the smoke password and session cookie in test-results.
+    { name: 'smoke-setup', testMatch: /.*\.setup\.ts/, use: { trace: 'off' } },
     {
       name: 'smoke',
       testMatch: /.*\.smoke\.spec\.ts/,

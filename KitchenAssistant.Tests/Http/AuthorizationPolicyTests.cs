@@ -67,6 +67,10 @@ public class AuthorizationPolicyTests : IClassFixture<ProductionAppFactory>
 
     public static TheoryData<string> Protected => new(ProtectedRoutes);
 
+    // Known template behaviour (since the scaffold): with no two-factor sign-in in progress these pages throw
+    // "Unable to load two-factor authentication user.", so an anonymous GET is a 500. Not caused by the fallback policy.
+    private static readonly string[] ThrowWithoutTwoFactorUser = ["/Account/LoginWith2fa", "/Account/LoginWithRecoveryCode"];
+
     private static string Concrete(string route) => route.Replace("{Id}", "x");
 
     [Theory]
@@ -93,6 +97,10 @@ public class AuthorizationPolicyTests : IClassFixture<ProductionAppFactory>
 
         // Some pages redirect to login themselves when their query parameters are missing (ExternalLogin,
         // ConfirmEmailChange). Only the authorization challenge adds a ReturnUrl, so that is what must be absent.
+        if (!ThrowWithoutTwoFactorUser.Contains(route))
+        {
+            Assert.True((int)response.StatusCode < 500, $"{route} returned {(int)response.StatusCode}.");
+        }
         Assert.False(
             response.StatusCode == HttpStatusCode.Redirect && response.Headers.Location!.ToString().Contains("ReturnUrl="),
             $"{route} challenged an anonymous visitor.");
@@ -105,6 +113,51 @@ public class AuthorizationPolicyTests : IClassFixture<ProductionAppFactory>
         using var client = _factory.CreateNoRedirectClient();
 
         var response = await client.GetAsync(Concrete(route));
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Contains(Login, response.Headers.Location!.ToString());
+    }
+
+    // Minimal-API endpoints from IdentityComponentsEndpointRouteBuilderExtensions. The coverage guard only sees
+    // @page routes, so these lists pin each endpoint's side by hand.
+    public static TheoryData<string> PublicEndpoints => new(
+        "/Account/PerformExternalLogin",
+        "/Account/PasskeyRequestOptions",
+        "/Account/Logout");
+
+    public static TheoryData<string> ProtectedEndpoints => new(
+        "/Account/PasskeyCreationOptions",
+        "/Account/Manage/LinkExternalLogin",
+        "/Account/Manage/DownloadPersonalData");
+
+    [Theory]
+    [MemberData(nameof(PublicEndpoints))]
+    public async Task Public_endpoint_does_not_challenge_anonymous_visitors(string route)
+    {
+        using var client = _factory.CreateNoRedirectClient();
+        var token = await client.GetAntiforgeryTokenAsync();
+
+        var response = await client.PostAsync(route, new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["__RequestVerificationToken"] = token,
+            ["provider"] = "none",
+            ["returnUrl"] = "products",
+        }));
+
+        // Only an authorization challenge adds ReturnUrl. PerformExternalLogin reaches its handler and then fails on
+        // the unknown provider (none is configured); that still proves it is not challenged.
+        Assert.False(
+            response.StatusCode == HttpStatusCode.Redirect && response.Headers.Location!.ToString().Contains("ReturnUrl="),
+            $"{route} challenged an anonymous visitor.");
+    }
+
+    [Theory]
+    [MemberData(nameof(ProtectedEndpoints))]
+    public async Task Protected_endpoint_challenges_anonymous_visitors(string route)
+    {
+        using var client = _factory.CreateNoRedirectClient();
+
+        var response = await client.PostAsync(route, new FormUrlEncodedContent([]));
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         Assert.Contains(Login, response.Headers.Location!.ToString());

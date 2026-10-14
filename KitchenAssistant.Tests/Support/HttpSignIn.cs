@@ -34,8 +34,9 @@ public static class HttpSignIn
         Assert.Equal(AddProductResult.Added, result);
     }
 
-    // The same client does the GET and the POST, so the antiforgery cookie matches the token; the Identity cookie stays in the client.
-    public static async Task SignInAsync(this HttpClient client, string email, string password = Password)
+    // Reads the login form's antiforgery token; the matching cookie stays in the client, so later POSTs from the
+    // same client validate.
+    public static async Task<string> GetAntiforgeryTokenAsync(this HttpClient client)
     {
         var page = await client.GetAsync("/Account/Login");
         Assert.Equal(HttpStatusCode.OK, page.StatusCode);
@@ -44,12 +45,20 @@ public static class HttpSignIn
         var token = document.QuerySelector("input[name='__RequestVerificationToken']")?.GetAttribute("value");
         Assert.False(string.IsNullOrEmpty(token), "The login form has no antiforgery token.");
 
+        return token!;
+    }
+
+    // The same client does the GET and the POST, so the antiforgery cookie matches the token; the Identity cookie stays in the client.
+    public static async Task SignInAsync(this HttpClient client, string email, string password = Password)
+    {
+        var token = await client.GetAntiforgeryTokenAsync();
+
         var response = await client.PostAsync("/Account/Login", new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["_handler"] = "login",
             ["Input.Email"] = email,
             ["Input.Password"] = password,
-            ["__RequestVerificationToken"] = token!,
+            ["__RequestVerificationToken"] = token,
         }));
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);

@@ -563,6 +563,34 @@ the AI (risk #3).
 - E2E patterns: `tests/e2e/auth.setup.ts`, `tests/e2e/support/blazor.ts`, `tests/e2e/products-cross-user-isolation.spec.ts`
 - Docs: Context7 `aspnetcore.docs`: integration tests ("Customize WebApplicationFactory"), "Require global user authentication"
 
+## Deviations (addendum, 2026-10-14)
+
+These were decided during implementation or in the implementation review (`reviews/impl-review.md`). Treat them as
+part of the plan.
+
+- **`UseStaticWebAssets()` in `ProductionAppFactory`** (Phase 3). The factory swaps more than the database: without
+  this call, the Production test host doesn't serve `blazor.web.js`. As a result, the static-asset test proves
+  `MapStaticAssets` + `AllowAnonymous` on the test host's layout. The published layout is covered by the smoke.
+- **Seeded users are pre-confirmed** (`HttpSignIn.SeedUserAsync` sets `EmailConfirmed = true`, Phase 2). The HTTP
+  tests therefore don't pin Production's `RequireConfirmedAccount=false`. Only the smoke's registration path relies
+  on it.
+- **The public-page check looks for `ReturnUrl=`, not for any `Location` to login** (Phase 3). ExternalLogin and
+  ConfirmEmailChange redirect to login themselves. Only an authorization challenge adds `ReturnUrl`.
+- **The public-page check also requires a status below 500**, except on `/Account/LoginWith2fa` and
+  `/Account/LoginWithRecoveryCode` (review F4). Without a two-factor sign-in in progress, both scaffold pages throw.
+  Fixing them is a follow-up.
+- **`Logout` is anonymous** (review F6, superseding Phase 3 §3 "Logout stays under the fallback policy"). Otherwise a
+  user with an expired cookie who clicks Logout ends on `/not-found`. Signing out an anonymous user is a no-op.
+- **The minimal-API Identity endpoints are pinned by hand** (review F2). `AuthorizationPolicyTests` has public and
+  protected endpoint lists next to the page lists:
+  - public: PerformExternalLogin, PasskeyRequestOptions, Logout;
+  - protected: PasskeyCreationOptions, Manage/LinkExternalLogin, Manage/DownloadPersonalData.
+- **The `smoke-setup` project records no trace** (review F3), so the smoke password and cookie never land in
+  `test-results/`.
+- **The smoke registers its account only when `SMOKE_ALLOW_REGISTER=1`** (review F8, superseding Phase 4 §2 step 3).
+  Without the flag, a failed sign-in fails the run. That way a wrong secret in `deploy.yml` can't create a stray
+  production account. Local `-Reset` runs set the flag.
+
 ## Progress
 
 > Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.

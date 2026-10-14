@@ -34,7 +34,9 @@ public class ProductionCompositionTests
     {
         using var factory = ProductionAppFactory.With(("Recipes:Effort", "extreme"));
 
-        Assert.ThrowsAny<Exception>(() => factory.CreateNoRedirectClient());
+        var ex = Assert.Throws<InvalidOperationException>(() => factory.CreateNoRedirectClient());
+
+        Assert.Contains("Recipes:Effort 'extreme'", ex.Message);
     }
 
     [Fact]
@@ -56,9 +58,9 @@ public class ProductionCompositionTests
         {
             using var factory = ProductionAppFactory.With(("ConnectionStrings:DefaultConnection", null), ("contentRoot", emptyRoot));
 
-            var ex = Assert.ThrowsAny<Exception>(() => factory.CreateNoRedirectClient());
+            var ex = Assert.Throws<InvalidOperationException>(() => factory.CreateNoRedirectClient());
 
-            Assert.Contains("DefaultConnection", ex.ToString());
+            Assert.Contains("DefaultConnection", ex.Message);
         }
         finally
         {

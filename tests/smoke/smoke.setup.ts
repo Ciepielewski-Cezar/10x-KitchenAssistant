@@ -14,12 +14,17 @@ setup('sign in the smoke account, registering it on a fresh environment', async 
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Log in', exact: true }).click();
 
-  // Either the sign-in worked, or the account does not exist yet (a fresh database): register it instead.
+  // Either the sign-in worked, or the account does not exist yet (a fresh database). Registering needs an explicit
+  // SMOKE_ALLOW_REGISTER=1, so a mistyped secret fails the run instead of creating a stray account on a deployed site.
   const signedIn = page.getByRole('button', { name: 'Logout' });
   const invalid = page.getByText('Invalid login attempt.');
   await expect(signedIn.or(invalid)).toBeVisible();
 
   if (await invalid.isVisible()) {
+    if (process.env.SMOKE_ALLOW_REGISTER !== '1') {
+      throw new Error('The smoke account cannot sign in. Check SMOKE_USERNAME/SMOKE_PASSWORD, or set SMOKE_ALLOW_REGISTER=1 to register it on a fresh environment.');
+    }
+
     await page.goto('/Account/Register');
     await page.getByLabel('Email').fill(username);
     await page.getByLabel('Password', { exact: true }).fill(password);

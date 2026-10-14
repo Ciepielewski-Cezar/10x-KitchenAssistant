@@ -22,10 +22,10 @@
 - purpose: post-deploy check beyond liveness (test-plan risk #3): a signed-in page, the interactive connection and a real AI generation
 - config: playwright.smoke.config.ts (no webServer; runs against an already-running app)
 - command: npm run smoke (npx playwright test -c playwright.smoke.config.ts)
-- variables: SMOKE_BASE_URL (required), SMOKE_USERNAME, SMOKE_PASSWORD; read from the environment or, for SMOKE_ names only, from .env
-- projects: smoke-setup (tests/smoke/smoke.setup.ts: logs in, or registers the account on a fresh environment), then smoke (tests/smoke/deployed-app.smoke.spec.ts)
+- variables: SMOKE_BASE_URL (required), SMOKE_USERNAME, SMOKE_PASSWORD, SMOKE_ALLOW_REGISTER (optional, `1` lets setup register the account when sign-in fails); read from the environment or, for SMOKE_ names only, from .env
+- projects: smoke-setup (tests/smoke/smoke.setup.ts: logs in; registers the account only when SMOKE_ALLOW_REGISTER=1, otherwise a failed sign-in fails the run), then smoke (tests/smoke/deployed-app.smoke.spec.ts)
 - storageState: playwright/.auth/smoke.json (gitignored)
-- local run: ./scripts/local-prod.ps1 -Reset (empty database, startup migration), then SMOKE_BASE_URL=http://localhost:8090 npm run smoke. Green needs a valid ANTHROPIC_API_KEY in .env; with an empty key the generation test fails by design
+- local run: ./scripts/local-prod.ps1 -Reset (empty database, startup migration), then SMOKE_BASE_URL=http://localhost:8090 SMOKE_ALLOW_REGISTER=1 npm run smoke (the empty database has no smoke account yet). Green needs a valid ANTHROPIC_API_KEY in .env; with an empty key the generation test fails by design
 - cost: one real Anthropic call per run, bounded by Recipes:MaxTokens and the 60 s deadline
 - CI: not wired yet; F-01 (change `deployment`) adds it to deploy.yml with SMOKE_ secrets
 - updated: 2026-10-14
