@@ -3,7 +3,7 @@ project: Kitchen Assistant
 version: 1
 status: draft
 created: 2026-09-30
-updated: 2026-10-09
+updated: 2026-10-31
 prd_version: 2
 main_goal: speed
 top_blocker: time
@@ -48,7 +48,7 @@ Osoba gotująca dla siebie co najmniej raz w tygodniu traci czas na szukanie prz
 | S-04 | recipe-details          | otwiera szczegóły wybranej propozycji i widzi pełny przepis w spójnej strukturze                                | S-02          | FR-006, NFR struktura, NFR ≤ 1 min         | done |
 | S-05 | meal-parameters         | wybiera parametry posiłku z małego zestawu, a propozycje je respektują                                          | S-02          | FR-004, US-01, Business Logic              | done |
 | S-06 | pantry-edit-remove      | zmienia albo usuwa produkt ze swojej listy                                                                      | S-01          | FR-003                                     | done |
-| S-07 | recipe-generation-spike | dostaje propozycje w ≤ 1 min na ustawieniach modelu potwierdzonych pomiarem 10 prawdziwych wywołań              | S-02, lokalny klucz API z limitem wydatków | NFR ≤ 1 min, FR-005, NFR struktura | ready |
+| S-07 | recipe-generation-spike | dostaje propozycje w ≤ 1 min na ustawieniach modelu potwierdzonych pomiarem 10 prawdziwych wywołań              | S-02, lokalny klucz API z limitem wydatków | NFR ≤ 1 min, FR-005, NFR struktura | in-progress |
 
 ## Streams
 
