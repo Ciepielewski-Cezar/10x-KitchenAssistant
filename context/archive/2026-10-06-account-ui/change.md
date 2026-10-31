@@ -1,10 +1,10 @@
 ---
 change_id: account-ui
 title: Account ui
-status: impl_reviewed
+status: archived
 created: 2026-10-06
-updated: 2026-10-06
-archived_at: null
+updated: 2026-10-31
+archived_at: 2026-10-31T12:27:30Z
 ---
 
 ## Notes
