@@ -184,7 +184,7 @@ Brak otwartych pytań. Rozstrzygnięte 2026-09-30:
 
 ## Parked
 
-- **Pomiar generowania i ustawienia modelu (`recipe-generation-spike`, dawne `S-07`)** — Why parked: decyzja 2026-10-08 — przeniesiony z M-1 do następnego kamienia milowego, żeby nie blokował MVP; pierwszy kandydat na M-2. Plan, runbook i tabele pomiarów czekają w `context/changes/recipe-generation-spike/`. Do tego czasu NFR ≤ 1 min w M-1 opiera się na smoke teście (14,5 s, Sonnet 5.5 / low) i telemetrii czasu żądań z `F-01`. Wynik pomiaru może wymusić rozdzielenie generowania (lista, potem pełny przepis), a wtedy przeróbkę `S-04`.
+- **Pomiar generowania i ustawienia modelu (`recipe-generation-spike`, dawne `S-07`)** — Why parked: decyzja 2026-10-08 — przeniesiony z M-1 do następnego kamienia milowego, żeby nie blokował MVP; pierwszy kandydat na M-2. Plan, runbook i tabele pomiarów czekają w `context/changes/recipe-generation-spike/`. Do tego czasu NFR ≤ 1 min w M-1 opiera się na smoke teście (14,5 s, Sonnet 5.5 / low) i telemetrii czasu żądań z `F-01`. Wynik pomiaru może wymusić rozdzielenie generowania (lista, potem pełny przepis), a wtedy przeróbkę `S-04`. **Wynik 2026-10-31:** 10/10 wywołań w ≤ 15 s (mediana 13 s, ok. $0,025 za żądanie) na Sonnet 5.5 / low — jedno wywołanie wystarcza, bez rozdzielania; `S-04` nie wymaga przeróbki, domyślne ustawienia `Recipes` bez zmian (szczegóły w `spike.md`).
 - **Zdjęcia i głosowe wprowadzanie produktów** — Why parked: PRD §Non-Goals (głos to też kryterium drugorzędne, nie MVP).
 - **Wspólne lodówki, zaproszenia i współdzielenie przestrzeni** — Why parked: PRD §Non-Goals; dane użytkownika są prywatne.
 - **Akcja „ugotuję to” i automatyczne uszczuplanie zapasów** — Why parked: PRD §Non-Goals.

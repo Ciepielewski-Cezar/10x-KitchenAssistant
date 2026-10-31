@@ -129,37 +129,37 @@ Column sources: elapsed s = `ElapsedMs` / 1000 from the generator line (it cover
 | # | elapsed s | stop reason | input tok | output tok | thinking tok | recipes | owned-by-ID | owned-by-name | unknown-ID | quality note |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 0 (schema compile, excluded) | | | | | | | | | | |
-| 1 | | | | | | | | | | |
-| 2 | | | | | | | | | | |
-| 3 | | | | | | | | | | |
-| 4 | | | | | | | | | | |
-| 5 | | | | | | | | | | |
-| 6 | | | | | | | | | | |
-| 7 | | | | | | | | | | |
-| 8 | | | | | | | | | | |
-| 9 | | | | | | | | | | |
-| 10 | | | | | | | | | | |
+| 1 | 9 | end_turn |2157 |  2042| 0|5 |14 |0 |1 |  The recipe generator returned 1 product IDs not on the user's list|
+| 2 | 15 | end_turn |2157 | 1674 | 0|5 | 25| 0| 0|good |
+| 3 | 15 | end_turn |2158 | 1137|0 |5 | 28|0 |0 | good|
+| 4 | 13 | end_turn |2156 | 2468|0 |5 | 27|0 | 0| good|
+| 5 | 11 | end_turn |2155 | 2663|0 |5 | 19|0 |0 |good |
+| 6 | 11 | end_turn | 2157|2332 |0 |5 | 25|0 | 0| good|
+| 7 | 14 | end_turn | 2157|1757 | 0|5 | 27| 0|0 |good |
+| 8 | 12 | end_turn |2157 |1885 |0 |5 |24 | 0|0 | good|
+| 9 | 15 | end_turn | 2156 | 2303|0 |5 | 22|0 | 0| good|
+| 10 | 13 | end_turn | 2157 | 2063 | 0| 5| 21| 0| 0| good|
 
 ## Summary
 
 Rows 1–10 only (row 0 excluded).
 
-- **Median latency:** _TBD_ s
-- **Max latency:** _TBD_ s (guardrail: every call ≤ 60 s)
-- **Calls within 60 s:** _TBD_ / 10
-- **Stop reasons:** _TBD_ (expected: all `end_turn`)
-- **Average tokens per call:** input _TBD_, output _TBD_, thinking _TBD_
-- **Estimated cost per request:** _TBD_ USD
-  - Pricing assumption: Sonnet 5.5 at $2 per 1M input tokens and $10 per 1M output tokens. Source: `research.md` § "Claude API facts", from the bundled `claude-api` skill's model table, cached 2026-09-25. Thinking is billed as output.
-  - Formula: `(avg input × 2 + avg output × 10) / 1,000,000`.
-  - TODO: confirm in the Console usage view that `output tokens` already includes `thinking tokens`. If it does not, add thinking to output in the formula. Also check the prices against the current Anthropic pricing page before writing down the figure.
-- **ID validity rate:** _TBD_ % = 1 − Σ unknown / Σ returned product IDs. This is the share of non-null product IDs from the AI that were on the user's list.
-- **Name-fallback rate:** _TBD_ % = Σ owned-by-name / (Σ owned-by-ID + Σ owned-by-name). This is the share of owned ingredients for which the AI gave no ID and the exact-name match decided ownership.
-- **Quality:** _TBD_ (Polish throughout? steps logical? fits obiad / ≤ 30 min / 1 porcja?)
-- **Verdict:** _TBD_ — one of:
-  - **Pass**: every measured call ≤ 60 s → keep or adjust the defaults, then answer the roadmap S-07 unknown („jedno wywołanie wystarcza”).
-  - **Fail**: apply the levers below.
-- **Chosen defaults** (to commit in `appsettings.json` → `Recipes`): `Model` = _TBD_, `Effort` = _TBD_, `MaxTokens` = _TBD_.
+Measured 2026-10-31 on the Development stack (LocalDB, user-secrets key). Elapsed times were recorded in whole seconds.
+
+- **Median latency:** 13 s (mean 12.8 s, min 9 s)
+- **Max latency:** 15 s (guardrail: every call ≤ 60 s)
+- **Calls within 60 s:** 10 / 10
+- **Stop reasons:** all 10 `end_turn`
+- **Average tokens per call:** input 2,157 (range 2,155–2,158), output 2,032 (range 1,137–2,663), thinking 0
+- **Estimated cost per request:** ≈ $0.025 USD (≈ $0.25 for the 10 calls)
+  - Pricing: Sonnet 5.5 at $2 per 1M input tokens and $10 per 1M output tokens. Rechecked 2026-10-31 against the bundled `claude-api` skill's model table (cached 2026-10-06); unchanged since 2026-09-25.
+  - Formula: `(avg input × 2 + avg output × 10) / 1,000,000` = (2,157 × 2 + 2,032 × 10) / 1,000,000 ≈ 0.0246.
+  - Thinking tokens were 0 on every call, so whether `output tokens` includes thinking does not change the figure.
+- **ID validity rate:** ≈ 99.6 % (1 unknown ID in 10 calls, in call 1). The unknown-ID column holds only the unknown count, not `unknown / returned`, so the denominator is estimated: every call kept all 5 recipes, so returned IDs ≈ Σ owned-by-ID + Σ unknown = 232 + 1 = 233, and 1 − 1/233 ≈ 99.6 %. Smoke test (2026-10-05): 20 / 20.
+- **Name-fallback rate:** 0 % (0 owned-by-name against 232 owned-by-ID). The AI gave an ID for every owned ingredient.
+- **Quality:** good in all 10 calls (user's assessment). The only issue was call 1's single unknown product ID, which raised the `UnknownProductIds` warning; the recipes were still kept and shown.
+- **Verdict:** **Pass**. Every measured call took ≤ 15 s, a quarter of the 60 s deadline, with the maximum output (2,663 tokens) far below `MaxTokens`. One call is enough for 5 full recipes; no list/details split, and S-04 needs no second AI call. Levers were not needed.
+- **Chosen defaults** (`appsettings.json` → `Recipes`, unchanged): `Model` = `claude-sonnet-5-5`, `Effort` = `low`, `MaxTokens` = 16000.
 
 ## Levers (only if a measured call exceeds 60 s)
 
