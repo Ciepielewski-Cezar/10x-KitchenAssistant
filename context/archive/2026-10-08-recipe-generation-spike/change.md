@@ -1,10 +1,10 @@
 ---
 change_id: recipe-generation-spike
 title: Measure live recipe generation and lock the model defaults
-status: planned
+status: archived
 created: 2026-10-08
-updated: 2026-10-08
-archived_at: null
+updated: 2026-10-31
+archived_at: 2026-10-31T13:57:29Z
 ---
 
 ## Notes

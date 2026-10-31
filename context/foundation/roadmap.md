@@ -3,7 +3,7 @@ project: Kitchen Assistant
 version: 1
 status: draft
 created: 2026-09-30
-updated: 2026-10-09
+updated: 2026-10-31
 prd_version: 2
 main_goal: speed
 top_blocker: time
@@ -48,7 +48,7 @@ Osoba gotująca dla siebie co najmniej raz w tygodniu traci czas na szukanie prz
 | S-04 | recipe-details          | otwiera szczegóły wybranej propozycji i widzi pełny przepis w spójnej strukturze                                | S-02          | FR-006, NFR struktura, NFR ≤ 1 min         | done |
 | S-05 | meal-parameters         | wybiera parametry posiłku z małego zestawu, a propozycje je respektują                                          | S-02          | FR-004, US-01, Business Logic              | done |
 | S-06 | pantry-edit-remove      | zmienia albo usuwa produkt ze swojej listy                                                                      | S-01          | FR-003                                     | done |
-| S-07 | recipe-generation-spike | dostaje propozycje w ≤ 1 min na ustawieniach modelu potwierdzonych pomiarem 10 prawdziwych wywołań              | S-02, lokalny klucz API z limitem wydatków | NFR ≤ 1 min, FR-005, NFR struktura | ready |
+| S-07 | recipe-generation-spike | dostaje propozycje w ≤ 1 min na ustawieniach modelu potwierdzonych pomiarem 10 prawdziwych wywołań              | S-02, lokalny klucz API z limitem wydatków | NFR ≤ 1 min, FR-005, NFR struktura | done |
 
 ## Streams
 
@@ -184,7 +184,6 @@ Brak otwartych pytań. Rozstrzygnięte 2026-09-30:
 
 ## Parked
 
-- **Pomiar generowania i ustawienia modelu (`recipe-generation-spike`, dawne `S-07`)** — Why parked: decyzja 2026-10-08 — przeniesiony z M-1 do następnego kamienia milowego, żeby nie blokował MVP; pierwszy kandydat na M-2. Plan, runbook i tabele pomiarów czekają w `context/changes/recipe-generation-spike/`. Do tego czasu NFR ≤ 1 min w M-1 opiera się na smoke teście (14,5 s, Sonnet 5.5 / low) i telemetrii czasu żądań z `F-01`. Wynik pomiaru może wymusić rozdzielenie generowania (lista, potem pełny przepis), a wtedy przeróbkę `S-04`.
 - **Zdjęcia i głosowe wprowadzanie produktów** — Why parked: PRD §Non-Goals (głos to też kryterium drugorzędne, nie MVP).
 - **Wspólne lodówki, zaproszenia i współdzielenie przestrzeni** — Why parked: PRD §Non-Goals; dane użytkownika są prywatne.
 - **Akcja „ugotuję to” i automatyczne uszczuplanie zapasów** — Why parked: PRD §Non-Goals.
@@ -204,3 +203,4 @@ Brak otwartych pytań. Rozstrzygnięte 2026-09-30:
 - **S-06: użytkownik zmienia nazwę lub kategorię produktu albo usuwa produkt ze swojej listy.** — Archived 2026-10-08 → `context/archive/2026-10-08-pantry-edit-remove/`. Lesson: —.
 - **S-04: użytkownik otwiera wybraną propozycję i widzi pełny przepis (składniki, kroki) w spójnej, czytelnej strukturze.** — Archived 2026-10-09 → `context/archive/2026-10-09-recipe-details/`. Lesson: —.
 - **S-05: użytkownik przed prośbą o przepisy zmienia rodzaj posiłku, maksymalny czas lub liczbę porcji (domyślnie: obiad, do 30 min, 1 porcja), a propozycje są z nimi zgodne.** — Archived 2026-10-09 → `context/archive/2026-10-09-meal-parameters/`. Lesson: —.
+- **S-07: dostaje propozycje w ≤ 1 min na ustawieniach modelu potwierdzonych pomiarem 10 prawdziwych wywołań** — Archived 2026-10-31 → `context/archive/2026-10-08-recipe-generation-spike/`. Wynik: 10/10 wywołań w ≤ 15 s (mediana 13 s, ok. $0,025 za żądanie) na Sonnet 5.5 / low — jedno wywołanie wystarcza, bez rozdzielania; domyślne ustawienia `Recipes` bez zmian. Lesson: —.

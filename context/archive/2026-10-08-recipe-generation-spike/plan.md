@@ -84,11 +84,11 @@ If the API rejects the nullable `productId` schema, switch it to `anyOf` and re-
 
 #### Automated
 
-- [ ] 1.1 All tests still pass after the default changes: `dotnet test KitchenAssistant.slnx`
+- [x] 1.1 All tests still pass after the default changes: `dotnet test KitchenAssistant.slnx` — bdd1ff4
 
 #### Manual
 
-- [ ] 1.2 Dev key set via user-secrets with a Console spend limit; the startup missing-key warning is gone
-- [ ] 1.3 At least 10 real calls on a realistic pantry each finish within 60 s, with latency, tokens and stop reason recorded in `spike.md`
-- [ ] 1.4 Recipes are in Polish with logical steps, and the ID validity rate is recorded in `spike.md`
-- [ ] 1.5 The chosen model/effort is committed as the `Recipes` defaults in `appsettings.json` and the roadmap S-07 unknown is answered (or the split is escalated to re-planning)
+- [x] 1.2 Dev key set via user-secrets with a Console spend limit; the startup missing-key warning is gone — bdd1ff4
+- [x] 1.3 At least 10 real calls on a realistic pantry each finish within 60 s, with latency, tokens and stop reason recorded in `spike.md` — bdd1ff4
+- [x] 1.4 Recipes are in Polish with logical steps, and the ID validity rate is recorded in `spike.md` — bdd1ff4
+- [x] 1.5 The chosen model/effort is committed as the `Recipes` defaults in `appsettings.json` and the roadmap S-07 unknown is answered (or the split is escalated to re-planning) — bdd1ff4
