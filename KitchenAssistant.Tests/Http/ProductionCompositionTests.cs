@@ -68,6 +68,40 @@ public class ProductionCompositionTests
         }
     }
 
+    // Audit X1: a failing startup migration must reach telemetry. The factory has already run EnsureCreated on SQLite,
+    // so MigrateAsync fails deterministically. Disposed providers stand in for "exporters flushed before the process dies".
+    [Fact]
+    public void Failing_startup_migration_is_logged_critical_and_flushed()
+    {
+        using var factory = ProductionAppFactory.With(("Database:MigrateOnStartup", "true"));
+
+        var ex = Assert.ThrowsAny<Exception>(() => factory.CreateNoRedirectClient());
+
+        var critical = Assert.Single(factory.Logs.Entries, e => e.Level == LogLevel.Critical);
+        Assert.Same(ex, critical.Exception);
+        Assert.True(factory.Logs.Disposed, "The host was not disposed, so its logger providers were never flushed.");
+    }
+
+    // Audit X3/X4: levels are tuned for an exporter capped at 0.1 GB/day. EF's per-query SQL is the largest trace source, so
+    // it goes down; cookie unprotect, antiforgery and circuit events come up. Per-request hosting logs must stay off.
+    // Checked through the real filter rules, so category-prefix matching is covered too.
+    [Theory]
+    [InlineData("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)]
+    [InlineData("Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationHandler", LogLevel.Information)]
+    [InlineData("Microsoft.AspNetCore.Antiforgery.DefaultAntiforgery", LogLevel.Information)]
+    [InlineData("Microsoft.AspNetCore.Components.Server.Circuits.CircuitHost", LogLevel.Information)]
+    [InlineData("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning)]
+    public void Production_log_levels_are_tuned_for_the_exporter(string category, LogLevel minimum)
+    {
+        using var factory = new ProductionAppFactory();
+        using var _ = factory.CreateNoRedirectClient();
+
+        var logger = factory.Services.GetRequiredService<ILoggerFactory>().CreateLogger(category);
+
+        Assert.True(logger.IsEnabled(minimum), $"{category} should log at {minimum}.");
+        Assert.False(logger.IsEnabled(minimum - 1), $"{category} should not log below {minimum}.");
+    }
+
     [Fact]
     public void Anthropic_client_has_the_pinned_timeout_retries_and_key()
     {

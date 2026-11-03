@@ -7,7 +7,8 @@ namespace KitchenAssistant.Recipes;
 // The only entry point pages use for recipes. Sends the generator only this user's products, within one deadline for the
 // whole click. Turns the known generation failures into a Failed result: a cancellation the caller did not ask for (the
 // deadline or the AI client's per-attempt timeout), RecipeGenerationException, AnthropicException, and an answer with
-// nothing usable. Any other exception, including one from loading the products, propagates to the caller.
+// nothing usable (thrown as a RecipeGenerationException, so it is logged with an exception like the others). Any other
+// exception, including one from loading the products, propagates to the caller.
 public class RecipeService(
     ProductService productService,
     IRecipeGenerator generator,
@@ -73,25 +74,48 @@ public class RecipeService(
                 stats.UnknownIds);
             if (stats.UnknownIds > 0)
             {
-                logger.LogWarning("The recipe generator returned {UnknownIdCount} product IDs not on the user's list.", stats.UnknownIds);
+                logger.LogWarning(RecipeLogEvents.UnknownProductIds, "The recipe generator returned {UnknownIdCount} product IDs not on the user's list.", stats.UnknownIds);
             }
 
             // A broken answer (nothing usable) and a usable answer the limits hid entirely are different outcomes.
             if (usable.Count == 0)
             {
-                logger.LogError("The recipe generator returned {RecipeCount} recipes, none of them usable.", recipes.Count);
-                return Failed;
+                throw new RecipeGenerationException($"The recipe generator returned {recipes.Count} recipes, none of them usable.")
+                {
+                    Data = { ["RecipeCount"] = recipes.Count, ["ResponseLength"] = json.Length },
+                };
             }
 
             if (ranked.Proposals.Count == 0)
             {
-                logger.LogInformation(
-                    "All {ProposalCount} usable proposals were hidden: {HiddenCount} over the missing limit of {MaxMissing}, {HiddenOverTimeCount} over the time limit {MaxPrepMinutes}.",
-                    usable.Count,
-                    ranked.HiddenCount,
-                    RecipeRanker.MaxMissing,
-                    ranked.HiddenOverTimeCount,
-                    meal.MaxPrepMinutes);
+                // The user is told to change their limits either way. When no proposal states a time under a time limit,
+                // or the AI's product IDs are wrong, the AI's answer drifted, not the user's choice, so it must be alertable.
+                var allWithoutPrepTime = meal.MaxPrepMinutes is not null && usable.All(p => p.PrepTimeMinutes is null);
+                if (allWithoutPrepTime || stats.UnknownIds > 0)
+                {
+                    logger.LogWarning(
+                        RecipeLogEvents.ProposalsHiddenStructurally,
+                        "All {ProposalCount} usable proposals were hidden for a structural reason: all without a preparation time under a time limit {AllWithoutPrepTime}, unknown product IDs {UnknownIdCount}; {HiddenCount} over the missing limit of {MaxMissing}, {HiddenOverTimeCount} over the time limit {MaxPrepMinutes}.",
+                        usable.Count,
+                        allWithoutPrepTime,
+                        stats.UnknownIds,
+                        ranked.HiddenCount,
+                        RecipeRanker.MaxMissing,
+                        ranked.HiddenOverTimeCount,
+                        meal.MaxPrepMinutes);
+                }
+                else
+                {
+                    logger.LogInformation(
+                        RecipeLogEvents.ProposalsHiddenByLimits,
+                        "All {ProposalCount} usable proposals were hidden: {HiddenCount} over the missing limit of {MaxMissing}, {HiddenOverTimeCount} over the time limit {MaxPrepMinutes}.",
+                        usable.Count,
+                        ranked.HiddenCount,
+                        RecipeRanker.MaxMissing,
+                        ranked.HiddenOverTimeCount,
+                        meal.MaxPrepMinutes);
+                }
+
                 return new RecipeGenerationResult(RecipeGenerationStatus.NoneWithinLimits, [], ranked.HiddenCount, ranked.HiddenOverTimeCount);
             }
 
@@ -112,7 +136,7 @@ public class RecipeService(
         }
         catch (RecipeGenerationException ex)
         {
-            logger.LogError(ex, "Recipe generation failed: {Reason}", ex.Message);
+            logger.LogError(RecipeLogEvents.GenerationFailed, ex, "Recipe generation failed: {Reason}", ex.Message);
             return Failed;
         }
         catch (AnthropicException ex)

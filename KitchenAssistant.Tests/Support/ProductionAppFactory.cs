@@ -62,7 +62,9 @@ public sealed class ProductionAppFactory : WebApplicationFactory<Program>
         // runs from the build output, so it needs the static web assets manifest switched on.
         builder.UseStaticWebAssets();
 
-        builder.ConfigureLogging(logging => logging.AddProvider(Logs));
+        // A factory registration, not AddProvider(instance): the host's container then owns the provider and disposes it
+        // with the host, so a test can see whether Program.cs disposed (flushed) the host before failing.
+        builder.ConfigureLogging(logging => logging.Services.AddSingleton<ILoggerProvider>(_ => Logs));
 
         builder.ConfigureTestServices(services =>
         {
@@ -77,8 +79,9 @@ public sealed class ProductionAppFactory : WebApplicationFactory<Program>
             _connection.Open();
             services.AddDbContextFactory<ApplicationDbContext>(options => options.UseSqlite(_connection));
 
-            using var provider = services.BuildServiceProvider();
-            using var db = provider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext();
+            // A standalone context, not a provider built from `services`: disposing such a provider would also dispose the
+            // app's logger providers, including Logs.
+            using var db = new ApplicationDbContext(new DbContextOptionsBuilder<ApplicationDbContext>().UseSqlite(_connection).Options);
             db.Database.EnsureCreated();
         });
     }
@@ -101,24 +104,27 @@ public sealed class ProductionAppFactory : WebApplicationFactory<Program>
 
     public sealed class CapturedLogs : ILoggerProvider
     {
-        private readonly ConcurrentQueue<(LogLevel Level, string Message)> _entries = new();
+        private readonly ConcurrentQueue<Entry> _entries = new();
 
-        public IReadOnlyCollection<(LogLevel Level, string Message)> Entries => _entries.ToArray();
+        public IReadOnlyCollection<Entry> Entries => _entries.ToArray();
+
+        public bool Disposed { get; private set; }
 
         public ILogger CreateLogger(string categoryName) => new Capture(_entries);
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() => Disposed = true;
 
-        private sealed class Capture(ConcurrentQueue<(LogLevel, string)> entries) : ILogger
+        // Message includes the exception text, so failure output that prints Message still shows the cause.
+        public sealed record Entry(LogLevel Level, EventId EventId, string Message, Exception? Exception);
+
+        private sealed class Capture(ConcurrentQueue<Entry> entries) : ILogger
         {
             public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
             public bool IsEnabled(LogLevel logLevel) => true;
 
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) =>
-                entries.Enqueue((logLevel, formatter(state, exception) + (exception is null ? "" : " " + exception)));
+                entries.Enqueue(new Entry(logLevel, eventId, formatter(state, exception) + (exception is null ? "" : " " + exception), exception));
         }
     }
 }
