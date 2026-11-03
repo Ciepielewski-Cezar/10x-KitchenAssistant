@@ -382,19 +382,19 @@ not override `Logging` today.
 
 #### Automated
 
-- [x] 1.1 New RecipeServiceTests fail before the RecipeService change
-- [x] 1.2 New RecipeServiceTests pass after the change
-- [x] 1.3 Build passes with no new warnings
-- [x] 1.4 Full suite passes
-- [x] 1.5 No vulnerable packages added
+- [x] 1.1 New RecipeServiceTests fail before the RecipeService change — d3b8f0c
+- [x] 1.2 New RecipeServiceTests pass after the change — d3b8f0c
+- [x] 1.3 Build passes with no new warnings — d3b8f0c
+- [x] 1.4 Full suite passes — d3b8f0c
+- [x] 1.5 No vulnerable packages added — d3b8f0c
 
 ### Phase 2: Startup migration failure reaches telemetry (X1)
 
 #### Automated
 
-- [x] 2.1 New migration test fails before the Program.cs change
-- [x] 2.2 New migration test passes after the change
-- [x] 2.3 Full suite passes (existing CapturedLogs callers unaffected)
+- [x] 2.1 New migration test fails before the Program.cs change — d3b8f0c
+- [x] 2.2 New migration test passes after the change — d3b8f0c
+- [x] 2.3 Full suite passes (existing CapturedLogs callers unaffected) — d3b8f0c
 
 #### Manual
 
@@ -404,9 +404,9 @@ not override `Logging` today.
 
 #### Automated
 
-- [x] 3.1 New log-level test fails before the config change
-- [x] 3.2 New log-level test passes after the change
-- [x] 3.3 Full suite passes
+- [x] 3.1 New log-level test fails before the config change — d3b8f0c
+- [x] 3.2 New log-level test passes after the change — d3b8f0c
+- [x] 3.3 Full suite passes — d3b8f0c
 
 #### Manual
 
