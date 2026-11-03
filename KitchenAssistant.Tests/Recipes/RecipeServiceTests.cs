@@ -5,7 +5,9 @@ using KitchenAssistant.Pantry;
 using KitchenAssistant.Recipes;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 
@@ -40,8 +42,8 @@ public sealed class RecipeServiceTests : IDisposable
 
     public void Dispose() => _connection.Dispose();
 
-    private RecipeService Service(IRecipeGenerator generator, RecipeOptions? options = null) =>
-        new(_products, generator, Options.Create(options ?? new RecipeOptions()), _time, NullLogger<RecipeService>.Instance);
+    private RecipeService Service(IRecipeGenerator generator, RecipeOptions? options = null, ILogger<RecipeService>? logger = null) =>
+        new(_products, generator, Options.Create(options ?? new RecipeOptions()), _time, logger ?? NullLogger<RecipeService>.Instance);
 
     private async Task<int> AddAsync(string userId, string name, ProductCategory category = ProductCategory.UseFirst)
     {
@@ -329,6 +331,85 @@ public sealed class RecipeServiceTests : IDisposable
         var result = await Service(generator).GenerateAsync(UserA, MealParameters.Default);
 
         Assert.Equal(RecipeGenerationStatus.Failed, result.Status);
+    }
+
+    // Under the planned Azure Monitor distro only a log carrying an exception becomes exception telemetry, so "nothing
+    // usable" must go through the exception path, not a trace-only Error.
+    [Theory]
+    [InlineData("""{ "recipes": [] }""", 0)]
+    [InlineData("""{ "recipes": [ { "title": "", "summary": null, "prepTimeMinutes": null, "ingredients": [], "steps": [] } ] }""", 1)]
+    public async Task No_usable_recipes_is_logged_as_an_exception_with_a_stable_event_id(string json, int recipeCount)
+    {
+        await AddAsync(UserA, "jajka");
+        var logger = new FakeLogger<RecipeService>();
+
+        var result = await Service(new StubGenerator((_, _) => Task.FromResult(json)), logger: logger).GenerateAsync(UserA, MealParameters.Default);
+
+        Assert.Equal(RecipeGenerationStatus.Failed, result.Status);
+        var records = logger.Collector.GetSnapshot();
+        var error = Assert.Single(records, r => r.Level >= LogLevel.Error);
+        Assert.Equal(LogLevel.Error, error.Level);
+        Assert.Equal(RecipeLogEvents.GenerationFailed, error.Id);
+        var ex = Assert.IsType<RecipeGenerationException>(error.Exception);
+        Assert.Equal(recipeCount, ex.Data["RecipeCount"]);
+        Assert.Equal(json.Length, ex.Data["ResponseLength"]);
+    }
+
+    [Fact]
+    public async Task All_hidden_because_no_proposal_states_a_time_is_a_structural_warning()
+    {
+        var eggs = await AddAsync(UserA, "jajka");
+        var logger = new FakeLogger<RecipeService>();
+        var generator = new StubGenerator((_, _) => Task.FromResult(JsonOf(
+            Timed("Bez czasu A", null, new AiIngredient(eggs, "jajka", null)),
+            Timed("Bez czasu B", null, new AiIngredient(eggs, "jajka", null)))));
+
+        var result = await Service(generator, logger: logger).GenerateAsync(UserA, MealParameters.Default with { MaxPrepMinutes = 30 });
+
+        Assert.Equal(RecipeGenerationStatus.NoneWithinLimits, result.Status);
+        var records = logger.Collector.GetSnapshot();
+        var warning = Assert.Single(records, r => r.Id == RecipeLogEvents.ProposalsHiddenStructurally);
+        Assert.Equal(LogLevel.Warning, warning.Level);
+        Assert.DoesNotContain(records, r => r.Id == RecipeLogEvents.ProposalsHiddenByLimits);
+        Assert.DoesNotContain(records, r => r.Id == RecipeLogEvents.UnknownProductIds);
+    }
+
+    [Fact]
+    public async Task All_hidden_with_unknown_product_ids_is_a_structural_warning()
+    {
+        await AddAsync(UserA, "jajka");
+        var logger = new FakeLogger<RecipeService>();
+        // Unknown IDs never fall back to a name match, so all three count as missing and push the recipe over MaxMissing.
+        var generator = new StubGenerator((_, _) => Task.FromResult(JsonOf(
+            Recipe("Złe ID", new AiIngredient(9991, "jajka", null), new AiIngredient(9992, "mleko", null), new AiIngredient(9993, "masło", null)))));
+
+        var result = await Service(generator, logger: logger).GenerateAsync(UserA, MealParameters.Default);
+
+        Assert.Equal(RecipeGenerationStatus.NoneWithinLimits, result.Status);
+        var records = logger.Collector.GetSnapshot();
+        var warning = Assert.Single(records, r => r.Id == RecipeLogEvents.ProposalsHiddenStructurally);
+        Assert.Equal(LogLevel.Warning, warning.Level);
+        Assert.Equal(LogLevel.Warning, Assert.Single(records, r => r.Id == RecipeLogEvents.UnknownProductIds).Level);
+        Assert.DoesNotContain(records, r => r.Id == RecipeLogEvents.ProposalsHiddenByLimits);
+    }
+
+    [Fact]
+    public async Task All_hidden_by_the_users_own_limits_stays_at_information()
+    {
+        var eggs = await AddAsync(UserA, "jajka");
+        var logger = new FakeLogger<RecipeService>();
+        // One proposal without a time is not "every proposal lacks a time": the other states one over the limit.
+        var generator = new StubGenerator((_, _) => Task.FromResult(JsonOf(
+            Timed("Długi", 45, new AiIngredient(eggs, "jajka", null)),
+            Timed("Bez czasu", null, new AiIngredient(eggs, "jajka", null)),
+            Timed("Trzy braki", 10, [new AiIngredient(eggs, "jajka", null), .. Missing(3)]))));
+
+        var result = await Service(generator, logger: logger).GenerateAsync(UserA, MealParameters.Default with { MaxPrepMinutes = 30 });
+
+        Assert.Equal(RecipeGenerationStatus.NoneWithinLimits, result.Status);
+        var records = logger.Collector.GetSnapshot();
+        Assert.Equal(LogLevel.Information, Assert.Single(records, r => r.Id == RecipeLogEvents.ProposalsHiddenByLimits).Level);
+        Assert.DoesNotContain(records, r => r.Level >= LogLevel.Warning);
     }
 
     [Fact]

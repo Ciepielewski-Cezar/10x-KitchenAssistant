@@ -84,8 +84,19 @@ if (string.IsNullOrWhiteSpace(anthropicApiKey))
 
 if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
 {
-    using var scope = app.Services.CreateScope();
-    await scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
+    // This runs outside the host's lifetime: without the log and the dispose, a failed migration escapes Main with
+    // nothing in telemetry, because the logger providers (and their exporters) are never flushed.
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogCritical(ex, "The startup database migration failed; the app will not start.");
+        await app.DisposeAsync();
+        throw;
+    }
 }
 
 // Configure the HTTP request pipeline.
